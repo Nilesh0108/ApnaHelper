@@ -11,7 +11,7 @@ import { useAuth, useFirestore } from "@/firebase";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { toast } from "@/hooks/use-toast";
-import { UserPlus, ArrowRight } from "lucide-react";
+import { UserPlus, ArrowRight, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { UserRole } from "@/lib/types";
 
@@ -22,6 +22,7 @@ export default function RegisterPage() {
   
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [role, setRole] = useState<UserRole>("customer");
@@ -29,6 +30,16 @@ export default function RegisterPage() {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (password !== confirmPassword) {
+      toast({
+        variant: "destructive",
+        title: "Passwords mismatch",
+        description: "The password and confirmation password do not match.",
+      });
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -67,6 +78,8 @@ export default function RegisterPage() {
       setLoading(false);
     }
   };
+
+  const passwordsMatch = password === confirmPassword || confirmPassword === "";
 
   return (
     <div className="container max-w-md mx-auto py-20 px-4">
@@ -124,6 +137,22 @@ export default function RegisterPage() {
               />
             </div>
             <div className="space-y-2">
+              <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <Input 
+                id="confirmPassword" 
+                type="password" 
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required 
+                className={!passwordsMatch ? "border-destructive focus-visible:ring-destructive" : ""}
+              />
+              {!passwordsMatch && (
+                <p className="text-xs text-destructive flex items-center gap-1">
+                  <AlertCircle className="h-3 w-3" /> Passwords do not match
+                </p>
+              )}
+            </div>
+            <div className="space-y-2">
               <Label htmlFor="role">I am a...</Label>
               <Select onValueChange={(value) => setRole(value as UserRole)} defaultValue="customer">
                 <SelectTrigger>
@@ -135,7 +164,11 @@ export default function RegisterPage() {
                 </SelectContent>
               </Select>
             </div>
-            <Button className="w-full h-12 text-lg font-medium group" type="submit" disabled={loading}>
+            <Button 
+              className="w-full h-12 text-lg font-medium group" 
+              type="submit" 
+              disabled={loading || password !== confirmPassword || password === ""}
+            >
               {loading ? "Creating Account..." : (
                 <>
                   Register <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
