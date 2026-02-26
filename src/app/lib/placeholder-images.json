@@ -1,0 +1,29 @@
+
+{
+  "placeholderImages": [
+    {
+      "id": "plumbing",
+      "description": "Professional plumbing service",
+      "imageUrl": "https://picsum.photos/seed/plumb/600/400",
+      "imageHint": "plumbing repair"
+    },
+    {
+      "id": "electrical",
+      "description": "Certified electrical work",
+      "imageUrl": "https://picsum.photos/seed/elect/600/400",
+      "imageHint": "electrical wiring"
+    },
+    {
+      "id": "cleaning",
+      "description": "Deep home cleaning service",
+      "imageUrl": "https://picsum.photos/seed/clean/600/400",
+      "imageHint": "home cleaning"
+    },
+    {
+      "id": "carpentry",
+      "description": "Expert carpentry and woodwork",
+      "imageUrl": "https://picsum.photos/seed/wood/600/400",
+      "imageHint": "carpentry furniture"
+    }
+  ]
+}
