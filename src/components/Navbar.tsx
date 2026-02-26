@@ -1,13 +1,12 @@
-
 "use client";
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { getSession, logoutUser } from "@/lib/mock-data";
-import { LogOut, Home, Briefcase, LayoutDashboard, User, History, PieChart, Wallet, Settings } from "lucide-react";
-import { useEffect, useState } from "react";
-import { User as UserType } from "@/lib/types";
+import { useAuth, useUser, useDoc, useMemoFirebase } from "@/firebase";
+import { signOut } from "firebase/auth";
+import { doc } from "firebase/firestore";
+import { LogOut, Home, History, PieChart, Wallet, User, Settings, Loader2 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,23 +20,31 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
-  const [user, setUser] = useState<UserType | null>(null);
+  const auth = useAuth();
+  const { user, isUserLoading } = useUser();
 
-  useEffect(() => {
-    setUser(getSession());
-  }, [pathname]);
+  // Fetch role from Firestore
+  const userDocRef = useMemoFirebase(() => {
+    if (!user) return null;
+    const { firestore } = require('@/firebase');
+    const { doc } = require('firebase/firestore');
+    return doc(require('@/firebase').initializeFirebase().firestore, 'users', user.uid);
+  }, [user]);
 
-  const handleLogout = () => {
-    logoutUser();
+  const { data: profile } = useDoc(userDocRef);
+  const role = profile?.role;
+
+  const handleLogout = async () => {
+    await signOut(auth);
     router.push("/");
   };
 
-  if (!user && pathname !== "/" && !pathname.startsWith("/login")) return null;
+  if (isUserLoading) return null;
 
   const NavLinks = () => {
-    if (!user) return null;
+    if (!user || !role) return null;
     
-    if (user.role === 'customer') {
+    if (role === 'customer') {
       return (
         <div className="flex items-center gap-1">
           <Link href="/customer/dashboard">
@@ -54,7 +61,7 @@ export default function Navbar() {
       );
     }
     
-    if (user.role === 'worker') {
+    if (role === 'worker') {
       return (
         <div className="flex items-center gap-1">
           <Link href="/worker/dashboard">
@@ -71,7 +78,7 @@ export default function Navbar() {
       );
     }
 
-    if (user.role === 'admin') {
+    if (role === 'admin') {
       return (
         <div className="flex items-center gap-1">
           <Link href="/admin/dashboard">
@@ -106,7 +113,7 @@ export default function Navbar() {
         <div className="flex items-center gap-4">
           <NavLinks />
           
-          {user && (
+          {user ? (
             <>
               <div className="h-8 w-px bg-border mx-2 hidden sm:block" />
               
@@ -114,20 +121,20 @@ export default function Navbar() {
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                     <Avatar className="h-10 w-10">
-                      <AvatarImage src={`https://picsum.photos/seed/${user.id}/100`} />
-                      <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                      <AvatarImage src={`https://picsum.photos/seed/${user.uid}/100`} />
+                      <AvatarFallback>{user.email?.charAt(0).toUpperCase()}</AvatarFallback>
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-56" align="end" forceMount>
                   <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium leading-none">{user.name}</p>
-                      <p className="text-xs leading-none text-muted-foreground capitalize">{user.role}</p>
+                      <p className="text-sm font-medium leading-none">{profile?.firstName || user.email}</p>
+                      <p className="text-xs leading-none text-muted-foreground capitalize">{role}</p>
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <Link href={`/${user.role}/profile`}>
+                  <Link href={`/${role}/profile`}>
                     <DropdownMenuItem className="cursor-pointer">
                       <User className="mr-2 h-4 w-4" />
                       <span>Profile</span>
@@ -145,11 +152,15 @@ export default function Navbar() {
                 </DropdownMenuContent>
               </DropdownMenu>
             </>
-          )}
-          {!user && (
-            <Link href="/login">
-              <Button size="sm">Login</Button>
-            </Link>
+          ) : (
+            <div className="flex gap-2">
+              <Link href="/login">
+                <Button variant="ghost" size="sm">Login</Button>
+              </Link>
+              <Link href="/register">
+                <Button size="sm">Register</Button>
+              </Link>
+            </div>
           )}
         </div>
       </div>

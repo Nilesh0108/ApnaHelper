@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, Suspense } from "react";
@@ -7,44 +6,64 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
-import { loginUser } from "@/lib/mock-data";
-import { UserRole } from "@/lib/types";
+import { useAuth, useFirestore } from "@/firebase";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
 import { toast } from "@/hooks/use-toast";
 import { LogIn, ArrowRight } from "lucide-react";
+import Link from "next/link";
 
 function LoginForm() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const initialRole = searchParams.get('role') as UserRole || 'customer';
+  const auth = useAuth();
+  const db = useFirestore();
   
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
-    // Simulate network delay
-    setTimeout(() => {
-      const user = loginUser(email);
-      if (user) {
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      // Fetch user profile to determine role
+      const docRef = doc(db, "users", user.uid);
+      const docSnap = await getDoc(docRef);
+
+      if (docSnap.exists()) {
+        const userData = docSnap.data();
+        const role = userData.role;
+
         toast({
           title: "Login Successful",
-          description: `Welcome back, ${user.name}!`,
+          description: `Welcome back, ${userData.firstName}!`,
         });
         
-        if (user.role === 'customer') router.push("/customer/dashboard");
-        else if (user.role === 'worker') router.push("/worker/dashboard");
-        else if (user.role === 'admin') router.push("/admin/dashboard");
+        if (role === 'customer') router.push("/customer/dashboard");
+        else if (role === 'worker') router.push("/worker/dashboard");
+        else if (role === 'admin') router.push("/admin/dashboard");
+        else router.push("/");
       } else {
+        // Handle case where auth user exists but no profile doc
         toast({
-          variant: "destructive",
-          title: "Login Failed",
-          description: "User not found. Try customer@test.com, worker@test.com or admin@test.com",
+          title: "Profile Not Found",
+          description: "Authenticated successfully but profile data is missing.",
         });
+        router.push("/");
       }
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Login Failed",
+        description: error.message || "Invalid credentials. Please try again.",
+      });
+    } finally {
       setLoading(false);
-    }, 800);
+    }
   };
 
   return (
@@ -56,7 +75,7 @@ function LoginForm() {
           </div>
           <CardTitle className="text-3xl font-bold">Welcome Back</CardTitle>
           <CardDescription>
-            Enter your email to access your HomeServ Connect account
+            Enter your credentials to access your HomeServ Connect account
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -72,9 +91,17 @@ function LoginForm() {
                 required 
                 className="h-12"
               />
-              <p className="text-xs text-muted-foreground pt-1">
-                Demo emails: customer@test.com, worker@test.com, admin@test.com
-              </p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input 
+                id="password" 
+                type="password" 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required 
+                className="h-12"
+              />
             </div>
             <Button className="w-full h-12 text-lg font-medium group" type="submit" disabled={loading}>
               {loading ? "Authenticating..." : (
@@ -87,7 +114,7 @@ function LoginForm() {
         </CardContent>
         <CardFooter className="flex flex-col space-y-4 text-center">
           <div className="text-sm text-muted-foreground">
-            Don't have an account? <span className="text-primary font-semibold cursor-pointer hover:underline">Register now</span>
+            Don't have an account? <Link href="/register" className="text-primary font-semibold hover:underline">Register now</Link>
           </div>
         </CardFooter>
       </Card>
