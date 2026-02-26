@@ -3,10 +3,10 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { useAuth, useUser, useDoc, useMemoFirebase } from "@/firebase";
+import { useAuth, useUser, useDoc, useMemoFirebase, useFirestore } from "@/firebase";
 import { signOut } from "firebase/auth";
 import { doc } from "firebase/firestore";
-import { LogOut, Home, History, PieChart, Wallet, User, Settings, Loader2 } from "lucide-react";
+import { LogOut, Home, History, PieChart, Wallet, User, Settings, History as HistoryIcon } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,25 +21,37 @@ export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const auth = useAuth();
+  const db = useFirestore();
   const { user, isUserLoading } = useUser();
 
-  // Fetch role from Firestore
+  // Fetch role from Firestore using memoized reference
   const userDocRef = useMemoFirebase(() => {
     if (!user) return null;
-    const { firestore } = require('@/firebase');
-    const { doc } = require('firebase/firestore');
-    return doc(require('@/firebase').initializeFirebase().firestore, 'users', user.uid);
-  }, [user]);
+    return doc(db, 'users', user.uid);
+  }, [user, db]);
 
   const { data: profile } = useDoc(userDocRef);
   const role = profile?.role;
 
   const handleLogout = async () => {
-    await signOut(auth);
-    router.push("/");
+    try {
+      await signOut(auth);
+      router.push("/");
+    } catch (error) {
+      console.error("Logout error", error);
+    }
   };
 
-  if (isUserLoading) return null;
+  if (isUserLoading) return (
+    <nav className="bg-white border-b sticky top-0 z-50 h-16 flex items-center">
+      <div className="container mx-auto px-4 flex justify-between items-center">
+        <div className="flex items-center gap-2">
+          <div className="bg-primary/20 p-2 rounded-lg w-9 h-9 animate-pulse" />
+          <div className="h-6 w-32 bg-slate-100 rounded animate-pulse" />
+        </div>
+      </div>
+    </nav>
+  );
 
   const NavLinks = () => {
     if (!user || !role) return null;
@@ -54,7 +66,7 @@ export default function Navbar() {
           </Link>
           <Link href="/customer/history">
             <Button variant={pathname === '/customer/history' ? 'secondary' : 'ghost'} size="sm">
-              <History className="h-4 w-4 mr-1 sm:hidden md:block" /> History
+              <HistoryIcon className="h-4 w-4 mr-1 hidden md:block" /> History
             </Button>
           </Link>
         </div>
@@ -71,7 +83,7 @@ export default function Navbar() {
           </Link>
           <Link href="/worker/earnings">
             <Button variant={pathname === '/worker/earnings' ? 'secondary' : 'ghost'} size="sm">
-              <Wallet className="h-4 w-4 mr-1" /> Earnings
+              <Wallet className="h-4 w-4 mr-1 hidden md:block" /> Earnings
             </Button>
           </Link>
         </div>
@@ -88,7 +100,7 @@ export default function Navbar() {
           </Link>
           <Link href="/admin/reports">
             <Button variant={pathname === '/admin/reports' ? 'secondary' : 'ghost'} size="sm">
-              <PieChart className="h-4 w-4 mr-1" /> Reports
+              <PieChart className="h-4 w-4 mr-1 hidden md:block" /> Reports
             </Button>
           </Link>
         </div>
@@ -129,7 +141,7 @@ export default function Navbar() {
                 <DropdownMenuContent className="w-56" align="end" forceMount>
                   <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium leading-none">{profile?.firstName || user.email}</p>
+                      <p className="text-sm font-medium leading-none truncate">{profile?.firstName || user.email}</p>
                       <p className="text-xs leading-none text-muted-foreground capitalize">{role}</p>
                     </div>
                   </DropdownMenuLabel>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -30,7 +30,6 @@ function LoginForm() {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      // Fetch user profile to determine role
       const docRef = doc(db, "users", user.uid);
       const docSnap = await getDoc(docRef);
 
@@ -48,7 +47,6 @@ function LoginForm() {
         else if (role === 'admin') router.push("/admin/dashboard");
         else router.push("/");
       } else {
-        // Handle case where auth user exists but no profile doc
         toast({
           title: "Profile Not Found",
           description: "Authenticated successfully but profile data is missing.",

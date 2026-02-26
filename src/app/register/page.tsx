@@ -13,7 +13,6 @@ import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { toast } from "@/hooks/use-toast";
 import { UserPlus, ArrowRight, AlertCircle } from "lucide-react";
 import Link from "next/link";
-import { UserRole } from "@/lib/types";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -25,7 +24,6 @@ export default function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  // Only 'customer' or 'worker' allowed for public registration
   const [role, setRole] = useState<'customer' | 'worker'>("customer");
   const [loading, setLoading] = useState(false);
 
@@ -47,14 +45,13 @@ export default function RegisterPage() {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      // Create user profile in Firestore
       await setDoc(doc(db, "users", user.uid), {
         id: user.uid,
         firebaseUid: user.uid,
         firstName,
         lastName,
         email,
-        role, // Strictly 'customer' or 'worker'
+        role,
         status: "active",
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
