@@ -25,7 +25,8 @@ export default function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [role, setRole] = useState<UserRole>("customer");
+  // Only 'customer' or 'worker' allowed for public registration
+  const [role, setRole] = useState<'customer' | 'worker'>("customer");
   const [loading, setLoading] = useState(false);
 
   const handleRegister = async (e: React.FormEvent) => {
@@ -53,7 +54,7 @@ export default function RegisterPage() {
         firstName,
         lastName,
         email,
-        role,
+        role, // Strictly 'customer' or 'worker'
         status: "active",
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
@@ -153,14 +154,14 @@ export default function RegisterPage() {
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="role">I am a...</Label>
-              <Select onValueChange={(value) => setRole(value as UserRole)} defaultValue="customer">
-                <SelectTrigger>
-                  <SelectValue placeholder="Select your role" />
+              <Label htmlFor="role">Register as...</Label>
+              <Select onValueChange={(value) => setRole(value as 'customer' | 'worker')} defaultValue="customer">
+                <SelectTrigger id="role">
+                  <SelectValue placeholder="Select your account type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="customer">Customer (Seeking Services)</SelectItem>
-                  <SelectItem value="worker">Worker (Providing Services)</SelectItem>
+                  <SelectItem value="customer">User (Customer)</SelectItem>
+                  <SelectItem value="worker">Service Provider (Worker)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
