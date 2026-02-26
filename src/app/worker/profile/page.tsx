@@ -11,9 +11,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useUser, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { doc, updateDoc } from "firebase/firestore";
 import { toast } from "@/hooks/use-toast";
-import { User as UserIcon, Mail, Shield, Save, ArrowLeft, MapPin } from "lucide-react";
+import { User as UserIcon, Mail, Shield, Save, ArrowLeft, MapPin, Briefcase } from "lucide-react";
 
-export default function CustomerProfile() {
+export default function WorkerProfile() {
   const router = useRouter();
   const { user } = useUser();
   const db = useFirestore();
@@ -27,11 +27,13 @@ export default function CustomerProfile() {
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [bio, setBio] = useState("");
 
   useEffect(() => {
     if (profile) {
       setFirstName(profile.firstName || "");
       setLastName(profile.lastName || "");
+      setBio(profile.bio || "");
     }
   }, [profile]);
 
@@ -41,11 +43,12 @@ export default function CustomerProfile() {
       await updateDoc(userDocRef, {
         firstName,
         lastName,
+        bio,
         updatedAt: new Date().toISOString()
       });
       toast({
         title: "Profile Updated",
-        description: "Your personal information has been saved successfully.",
+        description: "Your professional profile has been saved successfully.",
       });
     } catch (e) {
       console.error(e);
@@ -62,19 +65,19 @@ export default function CustomerProfile() {
 
       <div className="space-y-6">
         <div className="flex items-center gap-4 mb-8">
-          <Avatar className="h-20 w-20 border-2 border-primary">
+          <Avatar className="h-20 w-20 border-2 border-secondary">
             <AvatarImage src={`https://picsum.photos/seed/${user.uid}/200`} />
             <AvatarFallback>{firstName?.charAt(0)}</AvatarFallback>
           </Avatar>
           <div>
             <h1 className="text-3xl font-bold">{firstName} {lastName}</h1>
-            <p className="text-muted-foreground capitalize">{profile?.role} Member</p>
+            <p className="text-muted-foreground capitalize">Service Provider ({profile?.role})</p>
           </div>
         </div>
 
         <Card>
           <CardHeader>
-            <CardTitle>Personal Information</CardTitle>
+            <CardTitle>Professional Information</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
@@ -96,6 +99,16 @@ export default function CustomerProfile() {
               </div>
             </div>
             <div className="space-y-2">
+              <Label htmlFor="bio">Professional Bio</Label>
+              <textarea 
+                id="bio"
+                className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                placeholder="Tell customers about your experience and expertise..."
+              />
+            </div>
+            <div className="space-y-2">
               <Label htmlFor="email">Email Address</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -104,8 +117,8 @@ export default function CustomerProfile() {
             </div>
           </CardContent>
           <CardFooter>
-            <Button onClick={handleSave} className="w-full">
-              <Save className="mr-2 h-4 w-4" /> Save Changes
+            <Button onClick={handleSave} className="w-full" variant="secondary">
+              <Save className="mr-2 h-4 w-4" /> Save Profile
             </Button>
           </CardFooter>
         </Card>
@@ -113,7 +126,7 @@ export default function CustomerProfile() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <MapPin className="h-5 w-5 text-primary" /> Address Details
+              <MapPin className="h-5 w-5 text-secondary" /> Service Area Details
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -136,24 +149,6 @@ export default function CustomerProfile() {
                   <p className="font-medium">{profile?.state || "N/A"}</p>
                 </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-destructive/20">
-          <CardHeader>
-            <CardTitle className="text-destructive">Account Security</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between p-3 border rounded-lg">
-              <div className="flex items-center gap-3">
-                <Shield className="h-5 w-5 text-primary" />
-                <div>
-                  <div className="font-medium">Two-Factor Authentication</div>
-                  <div className="text-xs text-muted-foreground">Not enabled</div>
-                </div>
-              </div>
-              <Button variant="outline" size="sm">Enable</Button>
             </div>
           </CardContent>
         </Card>

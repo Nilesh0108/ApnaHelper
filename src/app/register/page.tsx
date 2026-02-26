@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -11,8 +12,15 @@ import { useAuth, useFirestore } from "@/firebase";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { toast } from "@/hooks/use-toast";
-import { UserPlus, ArrowRight, AlertCircle } from "lucide-react";
+import { UserPlus, ArrowRight, AlertCircle, MapPin } from "lucide-react";
 import Link from "next/link";
+
+const STATES = [
+  "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat", "Haryana", 
+  "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur", 
+  "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", 
+  "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal"
+];
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -25,6 +33,13 @@ export default function RegisterPage() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [role, setRole] = useState<'customer' | 'worker'>("customer");
+  
+  // Address fields
+  const [apartment, setApartment] = useState("");
+  const [landmark, setLandmark] = useState("");
+  const [city, setCity] = useState("");
+  const [state, setState] = useState("");
+  
   const [loading, setLoading] = useState(false);
 
   const handleRegister = async (e: React.FormEvent) => {
@@ -37,6 +52,15 @@ export default function RegisterPage() {
         description: "The password and confirmation password do not match.",
       });
       return;
+    }
+
+    if (!state) {
+        toast({
+            variant: "destructive",
+            title: "Missing Information",
+            description: "Please select a state.",
+        });
+        return;
     }
 
     setLoading(true);
@@ -52,6 +76,11 @@ export default function RegisterPage() {
         lastName,
         email,
         role,
+        apartment,
+        landmark,
+        city,
+        state,
+        address: `${apartment}, ${landmark}, ${city}, ${state}`,
         status: "active",
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
@@ -80,7 +109,7 @@ export default function RegisterPage() {
   const passwordsMatch = password === confirmPassword || confirmPassword === "";
 
   return (
-    <div className="container max-w-md mx-auto py-20 px-4">
+    <div className="container max-w-2xl mx-auto py-10 px-4">
       <Card className="shadow-2xl border-primary/20">
         <CardHeader className="space-y-1 text-center">
           <div className="bg-primary/10 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4">
@@ -92,8 +121,8 @@ export default function RegisterPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleRegister} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+          <form onSubmit={handleRegister} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="firstName">First Name</Label>
                 <Input 
@@ -101,6 +130,7 @@ export default function RegisterPage() {
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
                   required 
+                  placeholder="John"
                 />
               </div>
               <div className="space-y-2">
@@ -110,9 +140,11 @@ export default function RegisterPage() {
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
                   required 
+                  placeholder="Doe"
                 />
               </div>
             </div>
+
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input 
@@ -124,33 +156,91 @@ export default function RegisterPage() {
                 required 
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input 
-                id="password" 
-                type="password" 
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required 
-              />
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input 
+                  id="password" 
+                  type="password" 
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required 
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Confirm Password</Label>
+                <Input 
+                  id="confirmPassword" 
+                  type="password" 
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required 
+                  className={!passwordsMatch ? "border-destructive focus-visible:ring-destructive" : ""}
+                />
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
-              <Input 
-                id="confirmPassword" 
-                type="password" 
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required 
-                className={!passwordsMatch ? "border-destructive focus-visible:ring-destructive" : ""}
-              />
-              {!passwordsMatch && (
-                <p className="text-xs text-destructive flex items-center gap-1">
-                  <AlertCircle className="h-3 w-3" /> Passwords do not match
-                </p>
-              )}
+            {!passwordsMatch && (
+              <p className="text-xs text-destructive flex items-center gap-1 -mt-4">
+                <AlertCircle className="h-3 w-3" /> Passwords do not match
+              </p>
+            )}
+
+            <div className="space-y-4 border-t pt-4">
+              <h3 className="font-semibold flex items-center gap-2">
+                <MapPin className="h-4 w-4 text-primary" /> Address Details
+              </h3>
+              
+              <div className="space-y-2">
+                <Label htmlFor="apartment">Apartment/Building & Flat No.</Label>
+                <Input 
+                  id="apartment" 
+                  value={apartment}
+                  onChange={(e) => setApartment(e.target.value)}
+                  required 
+                  placeholder="e.g. Green Valley Apts, Flat 402"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="landmark">Nearby Landmark</Label>
+                <Input 
+                  id="landmark" 
+                  value={landmark}
+                  onChange={(e) => setLandmark(e.target.value)}
+                  required 
+                  placeholder="e.g. Near City Mall"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="city">City</Label>
+                  <Input 
+                    id="city" 
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
+                    required 
+                    placeholder="e.g. Mumbai"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="state">State</Label>
+                  <Select onValueChange={setState} required>
+                    <SelectTrigger id="state">
+                      <SelectValue placeholder="Select State" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {STATES.map(s => (
+                        <SelectItem key={s} value={s}>{s}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
             </div>
-            <div className="space-y-2">
+
+            <div className="space-y-2 border-t pt-4">
               <Label htmlFor="role">Register as...</Label>
               <Select onValueChange={(value) => setRole(value as 'customer' | 'worker')} defaultValue="customer">
                 <SelectTrigger id="role">
@@ -162,6 +252,7 @@ export default function RegisterPage() {
                 </SelectContent>
               </Select>
             </div>
+
             <Button 
               className="w-full h-12 text-lg font-medium group" 
               type="submit" 

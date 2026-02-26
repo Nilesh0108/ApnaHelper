@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "UserProfile": {
@@ -39,9 +40,25 @@
           "type": "string",
           "description": "The contact phone number of the user."
         },
+        "apartment": {
+          "type": "string",
+          "description": "Apartment/building name and flat number."
+        },
+        "landmark": {
+          "type": "string",
+          "description": "Nearby landmark."
+        },
+        "city": {
+          "type": "string",
+          "description": "City name."
+        },
+        "state": {
+          "type": "string",
+          "description": "State name."
+        },
         "address": {
           "type": "string",
-          "description": "The primary physical address of the user (e.g., home address for customers, base address for workers)."
+          "description": "The full concatenated address of the user."
         },
         "latitude": {
           "type": "number",
