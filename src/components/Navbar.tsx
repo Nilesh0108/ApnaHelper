@@ -5,9 +5,18 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { getSession, logoutUser } from "@/lib/mock-data";
-import { LogOut, Home, Briefcase, LayoutDashboard, User } from "lucide-react";
+import { LogOut, Home, Briefcase, LayoutDashboard, User, History, PieChart, Wallet, Settings } from "lucide-react";
 import { useEffect, useState } from "react";
 import { User as UserType } from "@/lib/types";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -25,6 +34,63 @@ export default function Navbar() {
 
   if (!user && pathname !== "/" && !pathname.startsWith("/login")) return null;
 
+  const NavLinks = () => {
+    if (!user) return null;
+    
+    if (user.role === 'customer') {
+      return (
+        <div className="flex items-center gap-1">
+          <Link href="/customer/dashboard">
+            <Button variant={pathname === '/customer/dashboard' ? 'secondary' : 'ghost'} size="sm">
+              Dashboard
+            </Button>
+          </Link>
+          <Link href="/customer/history">
+            <Button variant={pathname === '/customer/history' ? 'secondary' : 'ghost'} size="sm">
+              <History className="h-4 w-4 mr-1 sm:hidden md:block" /> History
+            </Button>
+          </Link>
+        </div>
+      );
+    }
+    
+    if (user.role === 'worker') {
+      return (
+        <div className="flex items-center gap-1">
+          <Link href="/worker/dashboard">
+            <Button variant={pathname === '/worker/dashboard' ? 'secondary' : 'ghost'} size="sm">
+              Jobs
+            </Button>
+          </Link>
+          <Link href="/worker/earnings">
+            <Button variant={pathname === '/worker/earnings' ? 'secondary' : 'ghost'} size="sm">
+              <Wallet className="h-4 w-4 mr-1" /> Earnings
+            </Button>
+          </Link>
+        </div>
+      );
+    }
+
+    if (user.role === 'admin') {
+      return (
+        <div className="flex items-center gap-1">
+          <Link href="/admin/dashboard">
+            <Button variant={pathname === '/admin/dashboard' ? 'secondary' : 'ghost'} size="sm">
+              Users
+            </Button>
+          </Link>
+          <Link href="/admin/reports">
+            <Button variant={pathname === '/admin/reports' ? 'secondary' : 'ghost'} size="sm">
+              <PieChart className="h-4 w-4 mr-1" /> Reports
+            </Button>
+          </Link>
+        </div>
+      );
+    }
+
+    return null;
+  };
+
   return (
     <nav className="bg-white border-b sticky top-0 z-50">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
@@ -32,45 +98,52 @@ export default function Navbar() {
           <div className="bg-primary p-2 rounded-lg">
             <Home className="text-white h-5 w-5" />
           </div>
-          <span className="font-bold text-xl text-primary hidden sm:block">HomeServ <span className="text-secondary">Connect</span></span>
+          <span className="font-bold text-xl text-primary hidden sm:block">
+            HomeServ <span className="text-secondary">Connect</span>
+          </span>
         </Link>
 
         <div className="flex items-center gap-4">
+          <NavLinks />
+          
           {user && (
             <>
-              {user.role === 'customer' && (
-                <Link href="/customer/dashboard">
-                  <Button variant={pathname.includes('dashboard') ? 'default' : 'ghost'} size="sm">
-                    Dashboard
-                  </Button>
-                </Link>
-              )}
-              {user.role === 'worker' && (
-                <Link href="/worker/dashboard">
-                  <Button variant={pathname.includes('dashboard') ? 'default' : 'ghost'} size="sm">
-                    Jobs
-                  </Button>
-                </Link>
-              )}
-              {user.role === 'admin' && (
-                <Link href="/admin/dashboard">
-                  <Button variant={pathname.includes('dashboard') ? 'default' : 'ghost'} size="sm">
-                    Analytics
-                  </Button>
-                </Link>
-              )}
-              
               <div className="h-8 w-px bg-border mx-2 hidden sm:block" />
               
-              <div className="flex items-center gap-2">
-                <div className="hidden md:flex flex-col text-right">
-                  <span className="text-sm font-medium leading-none">{user.name}</span>
-                  <span className="text-xs text-muted-foreground capitalize">{user.role}</span>
-                </div>
-                <Button variant="ghost" size="icon" onClick={handleLogout} title="Logout">
-                  <LogOut className="h-5 w-5 text-muted-foreground" />
-                </Button>
-              </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage src={`https://picsum.photos/seed/${user.id}/100`} />
+                      <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56" align="end" forceMount>
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">{user.name}</p>
+                      <p className="text-xs leading-none text-muted-foreground capitalize">{user.role}</p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <Link href={`/${user.role}/profile`}>
+                    <DropdownMenuItem className="cursor-pointer">
+                      <User className="mr-2 h-4 w-4" />
+                      <span>Profile</span>
+                    </DropdownMenuItem>
+                  </Link>
+                  <DropdownMenuItem className="cursor-pointer">
+                    <Settings className="mr-2 h-4 w-4" />
+                    <span>Settings</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem className="text-destructive cursor-pointer" onClick={handleLogout}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Log out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </>
           )}
           {!user && (
