@@ -8,10 +8,18 @@ import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/componen
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useUser, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
-import { doc, updateDoc } from "firebase/firestore";
+import { doc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { toast } from "@/hooks/use-toast";
-import { User as UserIcon, Mail, Shield, Save, ArrowLeft, MapPin } from "lucide-react";
+import { Mail, Save, ArrowLeft, MapPin, Loader2 } from "lucide-react";
+
+const STATES = [
+  "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat", "Haryana", 
+  "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur", 
+  "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", 
+  "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal"
+];
 
 export default function CustomerProfile() {
   const router = useRouter();
@@ -27,32 +35,57 @@ export default function CustomerProfile() {
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [apartment, setApartment] = useState("");
+  const [landmark, setLandmark] = useState("");
+  const [city, setCity] = useState("");
+  const [state, setState] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     if (profile) {
       setFirstName(profile.firstName || "");
       setLastName(profile.lastName || "");
+      setApartment(profile.apartment || "");
+      setLandmark(profile.landmark || "");
+      setCity(profile.city || "");
+      setState(profile.state || "");
     }
   }, [profile]);
 
   const handleSave = async () => {
     if (!userDocRef) return;
+    setIsSaving(true);
     try {
       await updateDoc(userDocRef, {
         firstName,
         lastName,
-        updatedAt: new Date().toISOString()
+        apartment,
+        landmark,
+        city,
+        state,
+        address: `${apartment}, ${landmark}, ${city}, ${state}`,
+        updatedAt: serverTimestamp()
       });
       toast({
         title: "Profile Updated",
-        description: "Your personal information has been saved successfully.",
+        description: "Your changes have been saved successfully.",
       });
-    } catch (e) {
-      console.error(e);
+    } catch (e: any) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to update profile. Please try again.",
+      });
+    } finally {
+      setIsSaving(false);
     }
   };
 
-  if (isLoading || !user) return <div className="p-10 text-center">Loading profile...</div>;
+  if (isLoading || !user) return (
+    <div className="flex items-center justify-center min-h-[60vh]">
+      <Loader2 className="h-8 w-8 animate-spin text-primary" />
+    </div>
+  );
 
   return (
     <div className="container max-w-2xl mx-auto py-10 px-4">
@@ -68,7 +101,7 @@ export default function CustomerProfile() {
           </Avatar>
           <div>
             <h1 className="text-3xl font-bold">{firstName} {lastName}</h1>
-            <p className="text-muted-foreground capitalize">{profile?.role} Member</p>
+            <p className="text-muted-foreground capitalize">Customer Member</p>
           </div>
         </div>
 
@@ -99,15 +132,11 @@ export default function CustomerProfile() {
               <Label htmlFor="email">Email Address</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input id="email" value={user.email || ""} disabled className="pl-10 bg-slate-50" />
+                <Input id="email" value={user.email || ""} disabled className="pl-10 bg-slate-50 cursor-not-allowed" />
               </div>
+              <p className="text-[10px] text-muted-foreground">Email cannot be changed after registration.</p>
             </div>
           </CardContent>
-          <CardFooter>
-            <Button onClick={handleSave} className="w-full">
-              <Save className="mr-2 h-4 w-4" /> Save Changes
-            </Button>
-          </CardFooter>
         </Card>
 
         <Card>
@@ -117,45 +146,52 @@ export default function CustomerProfile() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 gap-4">
-              <div>
-                <Label className="text-muted-foreground">Apartment/Building</Label>
-                <p className="font-medium">{profile?.apartment || "N/A"}</p>
+            <div className="space-y-2">
+              <Label htmlFor="apartment">Apartment/Building & Flat No.</Label>
+              <Input 
+                id="apartment" 
+                value={apartment}
+                onChange={(e) => setApartment(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="landmark">Nearby Landmark</Label>
+              <Input 
+                id="landmark" 
+                value={landmark}
+                onChange={(e) => setLandmark(e.target.value)}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="city">City</Label>
+                <Input 
+                  id="city" 
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                />
               </div>
-              <div>
-                <Label className="text-muted-foreground">Landmark</Label>
-                <p className="font-medium">{profile?.landmark || "N/A"}</p>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label className="text-muted-foreground">City</Label>
-                  <p className="font-medium">{profile?.city || "N/A"}</p>
-                </div>
-                <div>
-                  <Label className="text-muted-foreground">State</Label>
-                  <p className="font-medium">{profile?.state || "N/A"}</p>
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="state">State</Label>
+                <Select onValueChange={setState} value={state}>
+                  <SelectTrigger id="state">
+                    <SelectValue placeholder="Select State" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {STATES.map(s => (
+                      <SelectItem key={s} value={s}>{s}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </CardContent>
-        </Card>
-
-        <Card className="border-destructive/20">
-          <CardHeader>
-            <CardTitle className="text-destructive">Account Security</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between p-3 border rounded-lg">
-              <div className="flex items-center gap-3">
-                <Shield className="h-5 w-5 text-primary" />
-                <div>
-                  <div className="font-medium">Two-Factor Authentication</div>
-                  <div className="text-xs text-muted-foreground">Not enabled</div>
-                </div>
-              </div>
-              <Button variant="outline" size="sm">Enable</Button>
-            </div>
-          </CardContent>
+          <CardFooter>
+            <Button onClick={handleSave} className="w-full" disabled={isSaving}>
+              {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+              Save All Changes
+            </Button>
+          </CardFooter>
         </Card>
       </div>
     </div>
