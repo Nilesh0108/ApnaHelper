@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useUser, useFirestore, useCollection, useDoc, useMemoFirebase } from "@/firebase";
-import { collection, query, where, orderBy, doc } from "firebase/firestore";
+import { collection, query, where, doc } from "firebase/firestore";
 import { 
   Plus, 
   Clock, 
@@ -30,16 +30,27 @@ export default function CustomerDashboard() {
   }, [user, db]);
   const { data: profile } = useDoc(userDocRef);
 
+  // Simplified query: Removed orderBy to avoid requiring a composite index.
+  // We will sort the results in the useMemo hook below.
   const jobsQuery = useMemoFirebase(() => {
     if (!user || !db) return null;
     return query(
       collection(db, 'service_requests'),
-      where('customerId', '==', user.uid),
-      orderBy('createdAt', 'desc')
+      where('customerId', '==', user.uid)
     );
   }, [user, db]);
 
-  const { data: jobs, isLoading: isJobsLoading } = useCollection(jobsQuery);
+  const { data: rawJobs, isLoading: isJobsLoading } = useCollection(jobsQuery);
+
+  // Sort jobs on the client side to avoid index errors
+  const jobs = useMemo(() => {
+    if (!rawJobs) return null;
+    return [...rawJobs].sort((a: any, b: any) => {
+      const timeA = a.createdAt?.seconds || 0;
+      const timeB = b.createdAt?.seconds || 0;
+      return timeB - timeA; // Descending order
+    });
+  }, [rawJobs]);
 
   if (isUserLoading) {
     return (

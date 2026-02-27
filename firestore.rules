@@ -6,7 +6,7 @@ service cloud.firestore {
      * HOME SERV CONNECT SECURITY RULES
      * 
      * Update: Explicitly allowed 'list' and 'get' for service_requests to resolve dashboard permission errors.
-     * Timestamp: 2024-05-22T11:00:00Z
+     * Timestamp: 2024-05-22T12:00:00Z
      */
 
     // --- GLOBAL HELPER FUNCTIONS ---
