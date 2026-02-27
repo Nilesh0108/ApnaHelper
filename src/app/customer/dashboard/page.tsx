@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -32,7 +31,7 @@ export default function CustomerDashboard() {
   }, [user, db]);
   const { data: profile } = useDoc(userDocRef);
 
-  // Fetch Service Requests from Firestore
+  // Fetch Service Requests from Firestore with specific filter
   const jobsQuery = useMemoFirebase(() => {
     if (!user || !db) return null;
     return query(
@@ -181,7 +180,7 @@ export default function CustomerDashboard() {
                     <CardTitle className="text-xl font-bold">{job.serviceType}</CardTitle>
                     <div className="flex items-center text-xs text-muted-foreground gap-1">
                       <Clock className="h-3 w-3" /> 
-                      {job.createdAt ? new Date(job.createdAt.seconds * 1000).toLocaleDateString() : 'Just now'}
+                      {job.createdAt?.seconds ? new Date(job.createdAt.seconds * 1000).toLocaleDateString() : 'Just now'}
                     </div>
                   </div>
                   {getStatusBadge(job.status)}

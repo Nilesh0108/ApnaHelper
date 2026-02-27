@@ -5,7 +5,7 @@ service cloud.firestore {
     /**
      * HOME SERV CONNECT SECURITY RULES
      * 
-     * Update: Explicitly allowed broad read access for service_requests 
+     * Deployment Trigger: Explicitly allowing broad read access for service_requests
      * to resolve dashboard permission errors for signed-in users.
      */
 
@@ -71,7 +71,7 @@ service cloud.firestore {
      */
     match /service_requests/{serviceRequestId} {
       // Allow any signed-in user to list and get service requests.
-      // This supports the dashboard queries where users see their own or available jobs.
+      // This is necessary for dashboards to query jobs by customerId or status.
       allow read: if isSignedIn();
       
       allow create: if isSignedIn() && request.resource.data.customerId == request.auth.uid;
