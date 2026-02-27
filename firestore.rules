@@ -5,8 +5,8 @@ service cloud.firestore {
     /**
      * HOME SERV CONNECT SECURITY RULES
      * 
-     * Update: Broadened read access for service_requests to resolve list permission errors.
-     * Timestamp: 2024-05-22T10:00:00Z
+     * Update: Explicitly allowed 'list' and 'get' for service_requests to resolve dashboard permission errors.
+     * Timestamp: 2024-05-22T11:00:00Z
      */
 
     // --- GLOBAL HELPER FUNCTIONS ---
@@ -63,10 +63,11 @@ service cloud.firestore {
 
     /**
      * @description Collaborative resource for service requests.
-     * Updated to allow broad read access for all signed-in users to resolve permission errors.
+     * We allow all authenticated users to list and get requests so they can find available jobs.
      */
     match /service_requests/{serviceRequestId} {
-      allow read: if isSignedIn();
+      // Explicitly allow both 'list' and 'get' for any signed-in user.
+      allow read, get, list: if isSignedIn();
       
       allow create: if isSignedIn() && request.resource.data.customerId == request.auth.uid;
       
