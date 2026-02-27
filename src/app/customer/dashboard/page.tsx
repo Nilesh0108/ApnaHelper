@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useMemo } from "react";
@@ -5,8 +6,9 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useUser, useFirestore, useCollection, useDoc, useMemoFirebase } from "@/firebase";
-import { collection, query, where, doc } from "firebase/firestore";
+import { collection, query, where, doc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { 
   Plus, 
   Clock, 
@@ -17,8 +19,10 @@ import {
   UserCircle, 
   HelpCircle,
   Sparkles,
-  Loader2
+  Loader2,
+  DollarSign
 } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 
 export default function CustomerDashboard() {
   const { user, isUserLoading } = useUser();
@@ -30,8 +34,6 @@ export default function CustomerDashboard() {
   }, [user, db]);
   const { data: profile } = useDoc(userDocRef);
 
-  // Simplified query: Removed orderBy to avoid requiring a composite index.
-  // We will sort the results in the useMemo hook below.
   const jobsQuery = useMemoFirebase(() => {
     if (!user || !db) return null;
     return query(
@@ -42,51 +44,62 @@ export default function CustomerDashboard() {
 
   const { data: rawJobs, isLoading: isJobsLoading } = useCollection(jobsQuery);
 
-  // Sort jobs on the client side to avoid index errors
-  const jobs = useMemo(() => {
+  const sortedJobs = useMemo(() => {
     if (!rawJobs) return null;
     return [...rawJobs].sort((a: any, b: any) => {
       const timeA = a.createdAt?.seconds || 0;
       const timeB = b.createdAt?.seconds || 0;
-      return timeB - timeA; // Descending order
+      return timeB - timeA;
     });
   }, [rawJobs]);
 
-  if (isUserLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <p className="text-muted-foreground animate-pulse">Loading your dashboard...</p>
-      </div>
-    );
-  }
-
-  const getStatusBadge = (status: string) => {
-    const s = (status || 'PENDING').toUpperCase();
-    switch (s) {
-      case 'PENDING':
-      case 'OPEN': 
-        return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">Pending</Badge>;
-      case 'ACCEPTED':
-        return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">Accepted</Badge>;
-      case 'IN_PROGRESS':
-        return <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">In Progress</Badge>;
-      case 'COMPLETED':
-        return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Completed</Badge>;
-      default: 
-        return <Badge variant="outline">{s}</Badge>;
+  const handleSelectQuote = async (jobId: string, quote: any) => {
+    try {
+      await updateDoc(doc(db, 'service_requests', jobId), {
+        status: 'ACCEPTED',
+        workerId: quote.workerId,
+        workerName: quote.workerName,
+        actualCost: quote.price,
+        acceptedAt: serverTimestamp()
+      });
+      toast({
+        title: "Quote Accepted!",
+        description: `You've selected ${quote.workerName} for this task.`,
+      });
+    } catch (e: any) {
+      toast({ variant: "destructive", title: "Selection Failed", description: e.message });
     }
   };
 
-  const formatDate = (timestamp: any) => {
-    if (!timestamp) return 'Just now';
-    try {
-      if (timestamp.seconds) return new Date(timestamp.seconds * 1000).toLocaleDateString();
-      if (timestamp instanceof Date) return timestamp.toLocaleDateString();
-      return new Date(timestamp).toLocaleDateString();
-    } catch (e) {
-      return 'Recently';
-    }
+  if (isUserLoading) return (
+    <div className="flex flex-col items-center justify-center min-h-[60vh]">
+      <Loader2 className="h-8 w-8 animate-spin text-primary" />
+    </div>
+  );
+
+  const QuotesView = ({ jobId }: { jobId: string }) => {
+    const q = useMemoFirebase(() => query(collection(db, 'service_requests', jobId, 'quotes')), [jobId]);
+    const { data: quotes, isLoading } = useCollection(q);
+
+    if (isLoading) return <Loader2 className="h-4 w-4 animate-spin mx-auto" />;
+    if (!quotes || quotes.length === 0) return <p className="text-center text-muted-foreground py-4">Waiting for worker quotes...</p>;
+
+    return (
+      <div className="space-y-4 py-4">
+        {quotes.map((quote: any) => (
+          <div key={quote.id} className="p-4 border rounded-xl flex items-center justify-between hover:bg-slate-50 transition-colors">
+            <div className="space-y-1">
+              <div className="font-bold flex items-center gap-2">
+                {quote.workerName}
+                <Badge variant="outline" className="bg-green-50 text-green-700">₹{quote.price}</Badge>
+              </div>
+              <p className="text-sm text-muted-foreground">{quote.message || 'Professional service at best price.'}</p>
+            </div>
+            <Button size="sm" onClick={() => handleSelectQuote(jobId, quote)}>Select This Quote</Button>
+          </div>
+        ))}
+      </div>
+    );
   };
 
   return (
@@ -94,14 +107,12 @@ export default function CustomerDashboard() {
       <div className="bg-white rounded-3xl p-8 shadow-sm border border-primary/10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div className="space-y-2">
           <h1 className="text-4xl font-extrabold tracking-tight">
-            Welcome back, <span className="text-primary">{profile?.firstName || 'Guest'}</span>!
+            Welcome, <span className="text-primary">{profile?.firstName || 'Guest'}</span>!
           </h1>
-          <p className="text-muted-foreground text-lg">
-            What can we help you fix or improve in your home today?
-          </p>
+          <p className="text-muted-foreground text-lg">Post a job and compare custom quotes from verified experts.</p>
         </div>
         <Link href="/customer/request">
-          <Button size="lg" className="rounded-full h-14 px-8 text-lg shadow-lg hover:shadow-xl transition-all group">
+          <Button size="lg" className="rounded-full h-14 px-8 text-lg shadow-lg group">
             <Plus className="mr-2 h-6 w-6 group-hover:rotate-90 transition-transform" /> 
             New Service Request
           </Button>
@@ -109,120 +120,79 @@ export default function CustomerDashboard() {
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Link href="/customer/request" className="block">
-          <Card className="hover:border-primary/50 transition-colors cursor-pointer group h-full">
-            <CardContent className="p-6 flex flex-col items-center text-center space-y-3">
-              <div className="bg-primary/10 p-4 rounded-2xl group-hover:bg-primary group-hover:text-white transition-colors">
-                <Sparkles className="h-6 w-6" />
-              </div>
-              <span className="font-bold">Book Service</span>
-            </CardContent>
-          </Card>
-        </Link>
-        <Link href="/customer/history" className="block">
-          <Card className="hover:border-primary/50 transition-colors cursor-pointer group h-full">
-            <CardContent className="p-6 flex flex-col items-center text-center space-y-3">
-              <div className="bg-secondary/10 p-4 rounded-2xl group-hover:bg-secondary group-hover:text-white transition-colors">
-                <History className="h-6 w-6" />
-              </div>
-              <span className="font-bold">Order History</span>
-            </CardContent>
-          </Card>
-        </Link>
-        <Link href="/customer/profile" className="block">
-          <Card className="hover:border-primary/50 transition-colors cursor-pointer group h-full">
-            <CardContent className="p-6 flex flex-col items-center text-center space-y-3">
-              <div className="bg-orange-50 p-4 rounded-2xl group-hover:bg-orange-500 group-hover:text-white transition-colors text-orange-600">
-                <UserCircle className="h-6 w-6" />
-              </div>
-              <span className="font-bold">My Profile</span>
-            </CardContent>
-          </Card>
-        </Link>
-        <Link href="#" className="block">
-          <Card className="hover:border-primary/50 transition-colors cursor-pointer group h-full">
-            <CardContent className="p-6 flex flex-col items-center text-center space-y-3">
-              <div className="bg-slate-100 p-4 rounded-2xl group-hover:bg-slate-800 group-hover:text-white transition-colors">
-                <HelpCircle className="h-6 w-6" />
-              </div>
-              <span className="font-bold">Get Support</span>
-            </CardContent>
-          </Card>
-        </Link>
+        {[
+          { icon: Sparkles, label: 'Book Service', href: '/customer/request', color: 'bg-primary/10 text-primary' },
+          { icon: History, label: 'Order History', href: '/customer/history', color: 'bg-secondary/10 text-secondary' },
+          { icon: UserCircle, label: 'My Profile', href: '/customer/profile', color: 'bg-orange-50 text-orange-600' },
+          { icon: HelpCircle, label: 'Get Support', href: '#', color: 'bg-slate-100 text-slate-800' }
+        ].map((action, idx) => (
+          <Link key={idx} href={action.href}>
+            <Card className="hover:border-primary/50 transition-colors cursor-pointer group h-full">
+              <CardContent className="p-6 flex flex-col items-center text-center space-y-3">
+                <div className={`${action.color} p-4 rounded-2xl group-hover:scale-110 transition-transform`}>
+                  <action.icon className="h-6 w-6" />
+                </div>
+                <span className="font-bold">{action.label}</span>
+              </CardContent>
+            </Card>
+          </Link>
+        ))}
       </div>
 
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold">Recent Service Requests</h2>
-          {jobs && jobs.length > 0 && (
-            <Link href="/customer/history">
-              <Button variant="ghost" size="sm" className="text-primary font-semibold">
-                View all history
-              </Button>
-            </Link>
-          )}
-        </div>
-
+        <h2 className="text-2xl font-bold">My Active Requests</h2>
         {isJobsLoading ? (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[1, 2, 3].map((i) => (
-              <Card key={i} className="animate-pulse bg-slate-50 border-none h-48" />
-            ))}
+            {[1, 2, 3].map(i => <Card key={i} className="animate-pulse bg-slate-50 h-48" />)}
           </div>
-        ) : !jobs || jobs.length === 0 ? (
-          <div className="py-20 text-center space-y-6 bg-white rounded-3xl border-2 border-dashed">
-            <div className="bg-muted w-24 h-24 rounded-full flex items-center justify-center mx-auto">
-              <Clock className="h-12 w-12 text-muted-foreground" />
-            </div>
-            <div className="space-y-2">
-              <h3 className="text-2xl font-bold">No requests yet</h3>
-              <p className="text-muted-foreground max-w-sm mx-auto">
-                Your ongoing and past service requests will appear here. Start by creating your first one!
-              </p>
-            </div>
-            <Link href="/customer/request">
-              <Button variant="outline" size="lg" className="rounded-full">
-                Create My First Request
-              </Button>
-            </Link>
+        ) : !sortedJobs || sortedJobs.length === 0 ? (
+          <div className="py-20 text-center bg-white rounded-3xl border-2 border-dashed">
+            <Clock className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-2xl font-bold">No requests yet</h3>
+            <p className="text-muted-foreground">Start by creating your first one!</p>
           </div>
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {jobs.map(job => (
-              <Card key={job.id} className="hover:shadow-xl transition-all duration-300 border-t-4 border-t-primary overflow-hidden">
-                <CardHeader className="flex flex-row items-start justify-between pb-4">
+            {sortedJobs.map((job: any) => (
+              <Card key={job.id} className="hover:shadow-xl transition-all duration-300 border-t-4 border-t-primary">
+                <CardHeader className="flex flex-row items-start justify-between">
                   <div className="space-y-1">
                     <CardTitle className="text-xl font-bold">{job.serviceType}</CardTitle>
-                    <div className="flex items-center text-xs text-muted-foreground gap-1">
-                      <Clock className="h-3 w-3" /> 
-                      {formatDate(job.createdAt)}
-                    </div>
+                    <Badge variant="outline" className="bg-blue-50 text-blue-700">{job.status}</Badge>
                   </div>
-                  {getStatusBadge(job.status)}
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <p className="text-sm line-clamp-2 text-muted-foreground leading-relaxed">
-                    {job.refinedDescription || job.description}
-                  </p>
-                  <div className="flex items-center text-sm text-muted-foreground gap-2 pt-2">
-                    <MapPin className="h-4 w-4 text-primary shrink-0" /> 
-                    <span className="truncate">{job.jobLocationAddress || 'Address not specified'}</span>
+                  <p className="text-sm text-muted-foreground line-clamp-2">{job.description}</p>
+                  <div className="flex items-center text-xs text-muted-foreground gap-1">
+                    <MapPin className="h-3 w-3" /> {job.areaCityPincode}
                   </div>
                   {job.workerName && (
-                    <div className="pt-3 flex items-center gap-3 border-t">
-                      <div className="bg-secondary/10 p-2 rounded-full">
-                        <Hammer className="h-4 w-4 text-secondary" />
-                      </div>
-                      <div className="text-sm">
-                        <span className="text-muted-foreground">Provider:</span> <span className="font-bold">{job.workerName}</span>
-                      </div>
+                    <div className="pt-3 border-t flex items-center gap-2">
+                      <Hammer className="h-4 w-4 text-secondary" />
+                      <div className="text-sm">Provider: <span className="font-bold">{job.workerName}</span></div>
                     </div>
                   )}
                 </CardContent>
                 <CardFooter className="bg-slate-50/50 pt-4">
-                  <Button variant="ghost" className="w-full group hover:bg-white" size="sm">
-                    View Full Details <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                  </Button>
+                  {job.status === 'PENDING' ? (
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button variant="default" className="w-full">
+                          <DollarSign className="h-4 w-4 mr-1" /> View Quotes
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Worker Bids for {job.serviceType}</DialogTitle>
+                        </DialogHeader>
+                        <QuotesView jobId={job.id} />
+                      </DialogContent>
+                    </Dialog>
+                  ) : (
+                    <Button variant="ghost" className="w-full" size="sm">
+                      Track Progress <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  )}
                 </CardFooter>
               </Card>
             ))}

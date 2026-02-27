@@ -137,42 +137,6 @@
         "description"
       ]
     },
-    "WorkerService": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "WorkerService",
-      "type": "object",
-      "description": "Represents a specific service category that a Worker is skilled in, linking a UserProfile (Worker) to a ServiceCategory. This entity allows for storing additional details about the worker's proficiency in that specific service.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the WorkerService entity (linking a worker to a specific service category)."
-        },
-        "workerId": {
-          "type": "string",
-          "description": "Reference to the UserProfile ID of the worker. (Relationship: UserProfile 1:N WorkerService)"
-        },
-        "serviceCategoryId": {
-          "type": "string",
-          "description": "Reference to the ServiceCategory ID. (Relationship: ServiceCategory 1:N WorkerService)"
-        },
-        "experienceYears": {
-          "type": "number",
-          "description": "The number of years of experience the worker has in this specific service category."
-        },
-        "certificationUrls": {
-          "type": "array",
-          "description": "An array of URLs to certification documents relevant to this service category for the worker.",
-          "items": {
-            "type": "string"
-          }
-        }
-      },
-      "required": [
-        "id",
-        "workerId",
-        "serviceCategoryId"
-      ]
-    },
     "ServiceRequest": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "ServiceRequest",
@@ -185,15 +149,15 @@
         },
         "customerId": {
           "type": "string",
-          "description": "Reference to the UserProfile ID of the customer who created the service request. (Relationship: UserProfile 1:N ServiceRequest)"
+          "description": "Reference to the UserProfile ID of the customer who created the service request."
         },
         "workerId": {
           "type": "string",
-          "description": "Reference to the UserProfile ID of the worker who accepted and is performing the service request. Null if not yet accepted. (Relationship: UserProfile 1:N ServiceRequest)"
+          "description": "Reference to the UserProfile ID of the worker who was selected. Null if not yet selected."
         },
-        "serviceCategoryId": {
+        "serviceType": {
           "type": "string",
-          "description": "Reference to the ServiceCategory ID for this request. (Relationship: ServiceCategory 1:N ServiceRequest)"
+          "description": "The category of service requested."
         },
         "title": {
           "type": "string",
@@ -201,159 +165,75 @@
         },
         "description": {
           "type": "string",
-          "description": "A detailed description of the service required, potentially assisted by AI."
+          "description": "A detailed description of the service required."
         },
-        "jobLocationAddress": {
+        "apartment": {
           "type": "string",
-          "description": "The specific street address where the service is to be performed."
+          "description": "Apartment/Building name with flat number."
         },
-        "jobLocationLatitude": {
-          "type": "number",
-          "description": "The latitude coordinate of the job location."
+        "landmark": {
+          "type": "string",
+          "description": "Nearby landmark."
         },
-        "jobLocationLongitude": {
-          "type": "number",
-          "description": "The longitude coordinate of the job location."
+        "areaCityPincode": {
+          "type": "string",
+          "description": "Area/City with pincode."
+        },
+        "state": {
+          "type": "string",
+          "description": "State name."
         },
         "status": {
           "type": "string",
-          "description": "The current status of the service request.",
-          "format": "enum",
-          "items": {
-            "type": "string"
-          }
-        },
-        "requestedDateTime": {
-          "type": "string",
-          "description": "The date and time the customer has requested the service to be performed.",
-          "format": "date-time"
+          "description": "The current status of the service request (PENDING, ACCEPTED, IN_PROGRESS, COMPLETED)."
         },
         "createdAt": {
           "type": "string",
-          "description": "Timestamp when the service request was created.",
           "format": "date-time"
-        },
-        "acceptedAt": {
-          "type": "string",
-          "description": "Timestamp when a worker accepted the service request.",
-          "format": "date-time"
-        },
-        "startedAt": {
-          "type": "string",
-          "description": "Timestamp when the worker started working on the service request.",
-          "format": "date-time"
-        },
-        "completedAt": {
-          "type": "string",
-          "description": "Timestamp when the service request was marked as completed by the worker.",
-          "format": "date-time"
-        },
-        "estimatedCost": {
-          "type": "number",
-          "description": "An optional estimated cost for the service, either suggested by AI or entered by the customer."
-        },
-        "actualCost": {
-          "type": "number",
-          "description": "The final agreed-upon or actual cost of the completed service."
-        },
-        "photoUrls": {
-          "type": "array",
-          "description": "An array of URLs to photos related to the service request (e.g., before/after photos).",
-          "items": {
-            "type": "string"
-          }
-        },
-        "customerRating": {
-          "type": "number",
-          "description": "Rating (1-5 stars) given by the worker to the customer after job completion."
-        },
-        "customerReview": {
-          "type": "string",
-          "description": "Text review provided by the worker about the customer after job completion."
-        },
-        "workerRating": {
-          "type": "number",
-          "description": "Rating (1-5 stars) given by the customer to the worker after job completion."
-        },
-        "workerReview": {
-          "type": "string",
-          "description": "Text review provided by the customer about the worker after job completion."
         }
       },
       "required": [
         "id",
         "customerId",
-        "serviceCategoryId",
-        "title",
+        "serviceType",
         "description",
-        "jobLocationAddress",
-        "jobLocationLatitude",
-        "jobLocationLongitude",
+        "apartment",
+        "areaCityPincode",
+        "state",
         "status",
-        "requestedDateTime",
         "createdAt"
       ]
     },
-    "Report": {
+    "Quote": {
       "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Report",
+      "title": "Quote",
       "type": "object",
-      "description": "Captures reports submitted by users regarding other users or service requests, for administrator review and action.",
+      "description": "A price offer sent by a worker for a specific service request.",
       "properties": {
         "id": {
-          "type": "string",
-          "description": "Unique identifier for the Report entity."
+          "type": "string"
         },
-        "reporterUserId": {
-          "type": "string",
-          "description": "Reference to the UserProfile ID of the user who submitted the report. (Relationship: UserProfile 1:N Report)"
+        "serviceRequestId": {
+          "type": "string"
         },
-        "reportedUserId": {
-          "type": "string",
-          "description": "Reference to the UserProfile ID of the user being reported. Mutually exclusive with reportedServiceRequestId. (Relationship: UserProfile 1:N Report)"
+        "workerId": {
+          "type": "string"
         },
-        "reportedServiceRequestId": {
-          "type": "string",
-          "description": "Reference to the ServiceRequest ID being reported. Mutually exclusive with reportedUserId. (Relationship: ServiceRequest 1:N Report)"
+        "workerName": {
+          "type": "string"
         },
-        "reason": {
-          "type": "string",
-          "description": "A concise reason for the report (e.g., 'Fraud', 'No-show', 'Abusive Behavior')."
+        "price": {
+          "type": "number"
         },
-        "details": {
-          "type": "string",
-          "description": "Detailed explanation and context for the report."
+        "message": {
+          "type": "string"
         },
         "createdAt": {
           "type": "string",
-          "description": "Timestamp when the report was submitted.",
           "format": "date-time"
-        },
-        "status": {
-          "type": "string",
-          "description": "The current processing status of the report by administrators.",
-          "format": "enum",
-          "items": {
-            "type": "string"
-          }
-        },
-        "resolutionNotes": {
-          "type": "string",
-          "description": "Notes added by an administrator detailing the resolution or action taken for the report."
-        },
-        "resolvedByAdminId": {
-          "type": "string",
-          "description": "Reference to the UserProfile ID of the administrator who resolved the report. (Relationship: UserProfile 1:N Report)"
         }
       },
-      "required": [
-        "id",
-        "reporterUserId",
-        "reason",
-        "details",
-        "createdAt",
-        "status"
-      ]
+      "required": ["id", "serviceRequestId", "workerId", "workerName", "price", "createdAt"]
     }
   },
   "auth": {
@@ -370,66 +250,7 @@
           "entityName": "UserProfile",
           "schema": {
             "$ref": "#/backend/entities/UserProfile"
-          },
-          "description": "Stores individual user profiles (Customer, Worker, Admin). The `userId` in the path corresponds to the `firebaseUid` field within the document. Authorization: Users can read/write their own profile where `userId == request.auth.uid`. Admins can read all profiles and update specific fields like `status`. Includes denormalized 'firebaseUid' field for authorization independence.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The Firebase Authentication UID of the user, serving as the document ID for their profile."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/roles_admin/{adminUid}",
-        "definition": {
-          "entityName": "adminRole",
-          "schema": {
-            "$ref": "#/backend/entities/UserProfile"
-          },
-          "description": "A dedicated collection for enforcing Database Access Control (DBAC) for administrators. The document ID (`adminUid`) is the Firebase UID of an admin user. The mere existence of a document here grants admin privileges, enabling efficient and atomic role checks without relying on `get()` calls to the UserProfile collection, thus achieving authorization independence.",
-          "params": [
-            {
-              "name": "adminUid",
-              "description": "The Firebase Authentication UID of an administrator, serving as the document ID."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/service_categories/{serviceCategoryId}",
-        "definition": {
-          "entityName": "ServiceCategory",
-          "schema": {
-            "$ref": "#/backend/entities/ServiceCategory"
-          },
-          "description": "Master list of predefined service categories available on the platform. Publicly readable by all authenticated users. Writable only by administrators.",
-          "params": [
-            {
-              "name": "serviceCategoryId",
-              "description": "The unique identifier for a service category."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/users/{workerId}/worker_services/{workerServiceId}",
-        "definition": {
-          "entityName": "WorkerService",
-          "schema": {
-            "$ref": "#/backend/entities/WorkerService"
-          },
-          "description": "Subcollection under a specific worker's profile, detailing the services that worker provides. Authorization: Only the worker whose `workerId` matches `request.auth.uid` can manage their own worker services. Includes denormalized 'workerId' field for authorization independence.",
-          "params": [
-            {
-              "name": "workerId",
-              "description": "The Firebase Authentication UID of the worker, matching the parent UserProfile ID."
-            },
-            {
-              "name": "workerServiceId",
-              "description": "The unique identifier for a specific service offered by this worker."
-            }
-          ]
+          }
         }
       },
       {
@@ -438,33 +259,18 @@
           "entityName": "ServiceRequest",
           "schema": {
             "$ref": "#/backend/entities/ServiceRequest"
-          },
-          "description": "Stores all service requests created by customers. Authorization: Customers can manage their own requests (`customerId == request.auth.uid`). Workers can view available requests, accept them (`workerId == request.auth.uid` after acceptance), and update status. Includes denormalized 'customerId' and 'workerId' fields for authorization independence and QAP support.",
-          "params": [
-            {
-              "name": "serviceRequestId",
-              "description": "The unique identifier for a service request."
-            }
-          ]
+          }
         }
       },
       {
-        "path": "/reports/{reportId}",
+        "path": "/service_requests/{serviceRequestId}/quotes/{quoteId}",
         "definition": {
-          "entityName": "Report",
+          "entityName": "Quote",
           "schema": {
-            "$ref": "#/backend/entities/Report"
-          },
-          "description": "Contains user-submitted reports about other users or service requests. Authorization: Any authenticated user can create a report (`reporterUserId == request.auth.uid`). Only administrators can read, update status, and add resolution notes. Includes denormalized 'reporterUserId' field for authorization independence.",
-          "params": [
-            {
-              "name": "reportId",
-              "description": "The unique identifier for a submitted report."
-            }
-          ]
+            "$ref": "#/backend/entities/Quote"
+          }
         }
       }
-    ],
-    "reasoning": "The recommended Firestore structure is designed to be secure, scalable, and debuggable by strictly adhering to the core design principles, especially Authorization Independence and Structural Segregation.\n\n**Authorization Independence via Denormalization:**\n1.  **User Profiles (`/users/{userId}`):** The user's `firebaseUid` is explicitly stored within the `UserProfile` document and also forms the document ID (`userId`). This means security rules can directly compare `request.auth.uid` with `userId` in the path (e.g., `match /users/{userId} { allow read, write: if userId == request.auth.uid; }`) without needing to perform a `get()` operation on a parent document.\n2.  **Worker Services (`/users/{workerId}/worker_services/{workerServiceId}`):** These are nested under the specific worker's profile. The `workerId` in the path directly corresponds to the `workerId` field within the `WorkerService` document. This denormalization ensures that rules can check ownership atomically (e.g., `allow write: if workerId == request.auth.uid;`) without `get()` calls.\n3.  **Service Requests (`/service_requests/{serviceRequestId}`):** For service requests, both `customerId` (the creator) and `workerId` (the assigned worker) are directly embedded within the `ServiceRequest` document. This is crucial for collaborative data access, allowing rules to check `request.auth.uid == resource.data.customerId` or `request.auth.uid == resource.data.workerId` without external lookups, supporting atomic operations and simpler rule logic.\n4.  **Admin Roles (`/roles_admin/{adminUid}`):** To enforce Database Access Control (DBAC) for administrators without `get()` calls, a dedicated top-level collection `roles_admin` is used. An admin's `firebaseUid` is stored as a document ID in this collection. Security rules can then check `exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid))` to determine admin status. This is an 'Existence over Content' approach, which is highly efficient and robust for Authorization Independence.\n5.  **Reports (`/reports/{reportId}`):** The `reporterUserId` is directly present in the document for authorization purposes (e.g., a user can only read/delete their own reports if needed, though for reports, it's typically admin-only read/write).\n\n**QAPs (Rules are not Filters) Support:**\n1.  **`/service_categories`:** This collection is designed for public read access (read-only for all authenticated users). It supports QAPs as any user can list all service categories without filtering requirements in the rules.\n2.  **`/users/{userId}/worker_services`:** A worker can list *their own* worker services by querying `/users/$(request.auth.uid)/worker_services`. The path itself acts as the filter, making it a valid QAP.\n3.  **`/service_requests`:** Customers can list their own service requests using `query.where('customerId', '==', request.auth.uid)`. Workers can list available jobs using `query.where('status', '==', 'PENDING')` or jobs assigned to them using `query.where('workerId', '==', request.auth.uid)`. These queries leverage explicit document fields and align with Firestore's query-ability, enabling efficient and secure QAPs.\n\n**Structural Segregation:** Each collection maintains a homogeneous security posture. For instance, `service_categories` is for static, globally readable data. `users/{userId}/worker_services` is for data strictly owned by the `{userId}`. This prevents mixing different access requirements within a single collection, simplifying rule writing and reducing potential security vulnerabilities. The explicit `status` field in `UserProfile`, `ServiceRequest`, and `Report` facilitates clear state modeling and predictable schema enforcement."
+    ]
   }
 }

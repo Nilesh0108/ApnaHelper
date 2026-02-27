@@ -9,7 +9,7 @@ export interface User {
   isBanned?: boolean;
 }
 
-export type JobStatus = 'open' | 'accepted' | 'in-progress' | 'completed';
+export type JobStatus = 'PENDING' | 'ACCEPTED' | 'IN_PROGRESS' | 'COMPLETED';
 
 export interface JobRequest {
   id: string;
@@ -21,8 +21,22 @@ export interface JobRequest {
   description: string;
   refinedDescription?: string;
   status: JobStatus;
-  createdAt: string;
-  location: string;
+  createdAt: any;
+  apartment: string;
+  landmark: string;
+  areaCityPincode: string;
+  state: string;
+  actualCost?: number;
+}
+
+export interface Quote {
+  id: string;
+  serviceRequestId: string;
+  workerId: string;
+  workerName: string;
+  price: number;
+  message?: string;
+  createdAt: any;
 }
 
 export const SERVICE_TYPES = [
@@ -32,4 +46,11 @@ export const SERVICE_TYPES = [
   'Cleaning',
   'Carpentry',
   'Painting'
+];
+
+export const STATES = [
+  "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat", "Haryana", 
+  "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur", 
+  "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", 
+  "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal"
 ];

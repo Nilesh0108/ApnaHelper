@@ -1,15 +1,7 @@
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    /**
-     * HOME SERV CONNECT SECURITY RULES
-     * 
-     * Update: Explicitly allowed 'list' and 'get' for service_requests to resolve dashboard permission errors.
-     * Timestamp: 2024-05-22T12:00:00Z
-     */
-
-    // --- GLOBAL HELPER FUNCTIONS ---
 
     function isSignedIn() {
       return request.auth != null;
@@ -23,67 +15,45 @@ service cloud.firestore {
       return isSignedIn() && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
     }
 
-    // --- COLLECTION RULES ---
-
-    /**
-     * @description Rules for the UserProfile entity.
-     */
     match /users/{userId} {
       allow get: if isSignedIn() && (isOwner(userId) || isAdmin());
       allow list: if isAdmin();
-      allow create: if isOwner(userId) && request.resource.data.firebaseUid == userId;
-      allow update: if (isOwner(userId) && request.resource.data.role == resource.data.role) || isAdmin();
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId) || isAdmin();
       allow delete: if isAdmin();
     }
 
-    /**
-     * @description Specialized collection for Database Access Control.
-     */
     match /roles_admin/{adminUid} {
       allow read, write: if isAdmin();
     }
 
-    /**
-     * @description Publicly readable catalog of services.
-     */
     match /service_categories/{serviceCategoryId} {
       allow read: if isSignedIn();
       allow create, update, delete: if isAdmin();
     }
 
-    /**
-     * @description Subcollection detailing services provided by a specific worker.
-     */
-    match /users/{workerId}/worker_services/{workerServiceId} {
-      allow read: if isSignedIn();
-      allow create: if isOwner(workerId) && request.resource.data.workerId == workerId;
-      allow update: if isOwner(workerId) && request.resource.data.workerId == resource.data.workerId;
-      allow delete: if isOwner(workerId);
-    }
-
-    /**
-     * @description Collaborative resource for service requests.
-     * We allow all authenticated users to list and get requests so they can find available jobs.
-     */
     match /service_requests/{serviceRequestId} {
-      // Explicitly allow both 'list' and 'get' for any signed-in user.
-      allow read, get, list: if isSignedIn();
-      
+      allow read: if isSignedIn();
       allow create: if isSignedIn() && request.resource.data.customerId == request.auth.uid;
-      
       allow update: if isSignedIn() && (
         resource.data.customerId == request.auth.uid || 
         resource.data.workerId == request.auth.uid || 
         isAdmin() ||
-        (resource.data.status == 'PENDING' && request.resource.data.workerId == request.auth.uid)
+        (resource.data.status == 'PENDING' && request.resource.data.workerId != null)
       );
-      
       allow delete: if (resource != null && resource.data.customerId == request.auth.uid) || isAdmin();
+
+      match /quotes/{quoteId} {
+        allow read: if isSignedIn() && (
+          get(/databases/$(database)/documents/service_requests/$(serviceRequestId)).data.customerId == request.auth.uid ||
+          request.auth.uid == resource.data.workerId ||
+          request.auth.uid == request.resource.data.workerId
+        );
+        allow create: if isSignedIn() && request.resource.data.workerId == request.auth.uid;
+        allow delete: if isSignedIn() && resource.data.workerId == request.auth.uid;
+      }
     }
 
-    /**
-     * @description Collection for user reports.
-     */
     match /reports/{reportId} {
       allow get, list: if isAdmin();
       allow create: if isSignedIn() && request.resource.data.reporterUserId == request.auth.uid;
