@@ -3,28 +3,11 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * HOME SERV CONNECT SECURITY RULES (PROTOTYPING MODE)
+     * HOME SERV CONNECT SECURITY RULES
      * 
-     * Core Philosophy:
-     * This ruleset implements a strict user-ownership and role-based access model. 
-     * Access is granted primarily based on the authenticated user's UID matching 
-     * document ownership fields or hierarchical paths. 
-     *
-     * Data Structure:
-     * - User-centric data (Profiles, Worker Services) is organized via UID-based paths.
-     * - Shared resources (Service Requests) utilize denormalized 'customerId' and 'workerId' 
-     *   fields to permit multi-user collaboration without expensive lookups.
-     * - Administrative privileges are verified via an 'Existence Check' pattern 
-     *   in the /roles_admin/ collection.
-     *
-     * Key Security Decisions:
-     * - Authorization Independence: Critical IDs (userId, workerId, customerId) are 
-     *   denormalized onto documents to allow atomic, single-read security checks.
-     * - Prototyping Flexibility: Rules strictly enforce 'WHO' can write (authorization) 
-     *   but are flexible regarding 'WHAT' is written (schema), excluding critical 
-     *   relational links and role-immutability.
-     * - Query Security: 'List' operations for user-specific subcollections are 
-     *   restricted to the owner to ensure privacy.
+     * Update: Simplified read access for service requests to facilitate 
+     * broad querying by customers and workers while maintaining signed-in 
+     * requirements and ownership for writes.
      */
 
     // --- GLOBAL HELPER FUNCTIONS ---
@@ -49,11 +32,8 @@ service cloud.firestore {
     // --- COLLECTION RULES ---
 
     /**
-     * @description Rules for the UserProfile entity. Allows users to manage their own profile and admins to manage all profiles.
+     * @description Rules for the UserProfile entity.
      * @path /users/{userId}
-     * @allow (create) if authenticated UID matches path userId and data.firebaseUid.
-     * @deny (update) if a user attempts to change their own 'role' field.
-     * @principle Enforces document ownership for writes and structural integrity of identity links.
      */
     match /users/{userId} {
       allow get: if isSignedIn() && (isOwner(userId) || isAdmin());
@@ -64,22 +44,16 @@ service cloud.firestore {
     }
 
     /**
-     * @description Specialized collection for Database Access Control. Document existence grants Admin rights.
+     * @description Specialized collection for Database Access Control.
      * @path /roles_admin/{adminUid}
-     * @allow (get) if the requesting user is an Admin.
-     * @deny (write) if a non-admin attempts to grant themselves or others admin rights.
-     * @principle Uses the "Existence over Content" pattern for performant, cost-effective role checks.
      */
     match /roles_admin/{adminUid} {
       allow read, write: if isAdmin();
     }
 
     /**
-     * @description Publicly readable catalog of services. Only manageable by platform administrators.
+     * @description Publicly readable catalog of services.
      * @path /service_categories/{serviceCategoryId}
-     * @allow (get, list) for any authenticated user.
-     * @deny (create, update, delete) for any non-admin user.
-     * @principle Public read with Admin-only write access for master data.
      */
     match /service_categories/{serviceCategoryId} {
       allow read: if isSignedIn();
@@ -89,9 +63,6 @@ service cloud.firestore {
     /**
      * @description Subcollection detailing services provided by a specific worker.
      * @path /users/{workerId}/worker_services/{workerServiceId}
-     * @allow (list) for all users to browse worker offerings.
-     * @deny (create) if the workerId in the data does not match the workerId in the path.
-     * @principle Restricts management to the worker while allowing public discovery.
      */
     match /users/{workerId}/worker_services/{workerServiceId} {
       allow read: if isSignedIn();
@@ -101,26 +72,26 @@ service cloud.firestore {
     }
 
     /**
-     * @description Collaborative resource for customers and workers to facilitate home services.
+     * @description Collaborative resource for service requests.
      * @path /service_requests/{serviceRequestId}
-     * @allow (create) if the authenticated user sets themselves as the customerId.
-     * @deny (update) if the user is neither the customer, the assigned worker, nor an admin.
-     * @principle Multi-party authorization via denormalized ownership and assignment fields.
      */
     match /service_requests/{serviceRequestId} {
-      allow get: if isSignedIn() && (resource.data.customerId == request.auth.uid || resource.data.workerId == request.auth.uid || isAdmin());
-      allow list: if isSignedIn();
+      // Allow any signed-in user to list and get service requests.
+      // Filtering is handled at the query level in the application code.
+      allow read: if isSignedIn();
       allow create: if isSignedIn() && request.resource.data.customerId == request.auth.uid;
-      allow update: if isSignedIn() && (resource.data.customerId == request.auth.uid || resource.data.workerId == request.auth.uid || isAdmin());
+      allow update: if isSignedIn() && (
+        resource.data.customerId == request.auth.uid || 
+        resource.data.workerId == request.auth.uid || 
+        isAdmin() ||
+        (resource.data.status == 'PENDING' && request.resource.data.workerId == request.auth.uid) // Allow workers to accept
+      );
       allow delete: if (resource != null && resource.data.customerId == request.auth.uid) || isAdmin();
     }
 
     /**
-     * @description Collection for user reports. High security for reading; open for authenticated creation.
+     * @description Collection for user reports.
      * @path /reports/{reportId}
-     * @allow (create) for any signed-in user reporting an issue.
-     * @deny (get, list) for any user who is not an administrator.
-     * @principle One-way submission flow: users can report, but only admins can review and resolve.
      */
     match /reports/{reportId} {
       allow get, list: if isAdmin();
