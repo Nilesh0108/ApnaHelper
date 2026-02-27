@@ -69,8 +69,13 @@ export default function CustomerDashboard() {
 
   const formatDate = (timestamp: any) => {
     if (!timestamp) return 'Just now';
-    if (timestamp.seconds) return new Date(timestamp.seconds * 1000).toLocaleDateString();
-    return new Date(timestamp).toLocaleDateString();
+    try {
+      if (timestamp.seconds) return new Date(timestamp.seconds * 1000).toLocaleDateString();
+      if (timestamp instanceof Date) return timestamp.toLocaleDateString();
+      return new Date(timestamp).toLocaleDateString();
+    } catch (e) {
+      return 'Recently';
+    }
   };
 
   return (

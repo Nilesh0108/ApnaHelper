@@ -63,10 +63,10 @@ service cloud.firestore {
 
     /**
      * @description Collaborative resource for service requests.
-     * Explicitly allowing get and list for all signed-in users.
+     * Updated to allow broad read access for all signed-in users to resolve permission errors.
      */
     match /service_requests/{serviceRequestId} {
-      allow get, list: if isSignedIn();
+      allow read: if isSignedIn();
       
       allow create: if isSignedIn() && request.resource.data.customerId == request.auth.uid;
       

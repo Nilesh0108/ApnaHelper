@@ -73,8 +73,13 @@ export default function WorkerDashboard() {
 
   const formatDate = (timestamp: any) => {
     if (!timestamp) return 'Recent';
-    if (timestamp.seconds) return new Date(timestamp.seconds * 1000).toLocaleDateString();
-    return new Date(timestamp).toLocaleDateString();
+    try {
+      if (timestamp.seconds) return new Date(timestamp.seconds * 1000).toLocaleDateString();
+      if (timestamp instanceof Date) return timestamp.toLocaleDateString();
+      return new Date(timestamp).toLocaleDateString();
+    } catch (e) {
+      return 'Recently';
+    }
   };
 
   const JobItem = ({ job }: { job: any }) => (
