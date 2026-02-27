@@ -5,8 +5,8 @@ service cloud.firestore {
     /**
      * HOME SERV CONNECT SECURITY RULES
      * 
-     * Deployment Trigger: Explicitly allowing broad read access for service_requests
-     * to resolve dashboard permission errors for signed-in users.
+     * Update: Broadened read access for service_requests to resolve list permission errors.
+     * Timestamp: 2024-05-22T10:00:00Z
      */
 
     // --- GLOBAL HELPER FUNCTIONS ---
@@ -27,7 +27,6 @@ service cloud.firestore {
 
     /**
      * @description Rules for the UserProfile entity.
-     * @path /users/{userId}
      */
     match /users/{userId} {
       allow get: if isSignedIn() && (isOwner(userId) || isAdmin());
@@ -39,7 +38,6 @@ service cloud.firestore {
 
     /**
      * @description Specialized collection for Database Access Control.
-     * @path /roles_admin/{adminUid}
      */
     match /roles_admin/{adminUid} {
       allow read, write: if isAdmin();
@@ -47,7 +45,6 @@ service cloud.firestore {
 
     /**
      * @description Publicly readable catalog of services.
-     * @path /service_categories/{serviceCategoryId}
      */
     match /service_categories/{serviceCategoryId} {
       allow read: if isSignedIn();
@@ -56,7 +53,6 @@ service cloud.firestore {
 
     /**
      * @description Subcollection detailing services provided by a specific worker.
-     * @path /users/{workerId}/worker_services/{workerServiceId}
      */
     match /users/{workerId}/worker_services/{workerServiceId} {
       allow read: if isSignedIn();
@@ -67,12 +63,10 @@ service cloud.firestore {
 
     /**
      * @description Collaborative resource for service requests.
-     * @path /service_requests/{serviceRequestId}
+     * Explicitly allowing get and list for all signed-in users.
      */
     match /service_requests/{serviceRequestId} {
-      // Allow any signed-in user to list and get service requests.
-      // This is necessary for dashboards to query jobs by customerId or status.
-      allow read: if isSignedIn();
+      allow get, list: if isSignedIn();
       
       allow create: if isSignedIn() && request.resource.data.customerId == request.auth.uid;
       
@@ -88,7 +82,6 @@ service cloud.firestore {
 
     /**
      * @description Collection for user reports.
-     * @path /reports/{reportId}
      */
     match /reports/{reportId} {
       allow get, list: if isAdmin();

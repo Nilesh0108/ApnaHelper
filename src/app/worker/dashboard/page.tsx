@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -7,7 +6,7 @@ import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/componen
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebase";
-import { collection, query, where, orderBy, doc, updateDoc, serverTimestamp } from "firebase/firestore";
+import { collection, query, orderBy, doc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { toast } from "@/hooks/use-toast";
 import { MapPin, Clock, Hammer, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
 
@@ -15,7 +14,6 @@ export default function WorkerDashboard() {
   const { user, isUserLoading } = useUser();
   const db = useFirestore();
 
-  // Fetch all service requests from Firestore
   const allJobsQuery = useMemoFirebase(() => {
     if (!db) return null;
     return query(
@@ -70,8 +68,14 @@ export default function WorkerDashboard() {
 
   if (!user) return null;
 
-  const availableJobs = allJobs?.filter(j => j.status === 'PENDING' || j.status === 'open') || [];
+  const availableJobs = allJobs?.filter(j => ['PENDING', 'OPEN', 'open'].includes(j.status)) || [];
   const myJobs = allJobs?.filter(j => j.workerId === user.uid) || [];
+
+  const formatDate = (timestamp: any) => {
+    if (!timestamp) return 'Recent';
+    if (timestamp.seconds) return new Date(timestamp.seconds * 1000).toLocaleDateString();
+    return new Date(timestamp).toLocaleDateString();
+  };
 
   const JobItem = ({ job }: { job: any }) => (
     <Card key={job.id} className="hover:shadow-md transition-shadow overflow-hidden border-t-4 border-t-primary">
@@ -80,11 +84,11 @@ export default function WorkerDashboard() {
           <CardTitle className="text-lg">{job.serviceType}</CardTitle>
           <div className="flex items-center text-xs text-muted-foreground gap-1">
             <Clock className="h-3 w-3" /> 
-            {job.createdAt ? new Date(job.createdAt.seconds * 1000).toLocaleDateString() : 'Recent'}
+            {formatDate(job.createdAt)}
           </div>
         </div>
-        <Badge variant={job.status === 'PENDING' || job.status === 'open' ? 'secondary' : 'default'}>
-          {job.status.replace('_', ' ')}
+        <Badge variant={['PENDING', 'OPEN', 'open'].includes(job.status) ? 'secondary' : 'default'}>
+          {(job.status || '').replace('_', ' ').toUpperCase()}
         </Badge>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -93,11 +97,11 @@ export default function WorkerDashboard() {
         </p>
         <div className="flex items-center text-sm text-muted-foreground gap-1">
           <MapPin className="h-4 w-4 text-primary shrink-0" /> 
-          <span className="truncate">{job.jobLocationAddress || job.location}</span>
+          <span className="truncate">{job.jobLocationAddress || job.location || 'Location missing'}</span>
         </div>
       </CardContent>
       <CardFooter className="flex gap-2 bg-slate-50/50 pt-4">
-        {(job.status === 'PENDING' || job.status === 'open') && (
+        {(['PENDING', 'OPEN', 'open'].includes(job.status)) && (
           <Button className="w-full" onClick={() => handleStatusChange(job.id, 'ACCEPTED')}>
             Accept Job
           </Button>

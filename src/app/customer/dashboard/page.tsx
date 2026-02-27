@@ -24,14 +24,12 @@ export default function CustomerDashboard() {
   const { user, isUserLoading } = useUser();
   const db = useFirestore();
 
-  // Fetch User Profile for the greeting
   const userDocRef = useMemoFirebase(() => {
     if (!user) return null;
     return doc(db, 'users', user.uid);
   }, [user, db]);
   const { data: profile } = useDoc(userDocRef);
 
-  // Fetch Service Requests from Firestore with specific filter
   const jobsQuery = useMemoFirebase(() => {
     if (!user || !db) return null;
     return query(
@@ -53,27 +51,30 @@ export default function CustomerDashboard() {
   }
 
   const getStatusBadge = (status: string) => {
-    switch (status) {
+    const s = (status || 'PENDING').toUpperCase();
+    switch (s) {
       case 'PENDING':
-      case 'open': 
+      case 'OPEN': 
         return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">Pending</Badge>;
       case 'ACCEPTED':
-      case 'accepted': 
         return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">Accepted</Badge>;
       case 'IN_PROGRESS':
-      case 'in-progress': 
         return <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">In Progress</Badge>;
       case 'COMPLETED':
-      case 'completed': 
         return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Completed</Badge>;
       default: 
-        return <Badge variant="outline">{status}</Badge>;
+        return <Badge variant="outline">{s}</Badge>;
     }
+  };
+
+  const formatDate = (timestamp: any) => {
+    if (!timestamp) return 'Just now';
+    if (timestamp.seconds) return new Date(timestamp.seconds * 1000).toLocaleDateString();
+    return new Date(timestamp).toLocaleDateString();
   };
 
   return (
     <div className="container mx-auto py-10 px-4 space-y-10">
-      {/* Top Welcome Greeting Section */}
       <div className="bg-white rounded-3xl p-8 shadow-sm border border-primary/10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div className="space-y-2">
           <h1 className="text-4xl font-extrabold tracking-tight">
@@ -91,7 +92,6 @@ export default function CustomerDashboard() {
         </Link>
       </div>
 
-      {/* Quick Action Buttons */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Link href="/customer/request" className="block">
           <Card className="hover:border-primary/50 transition-colors cursor-pointer group h-full">
@@ -135,7 +135,6 @@ export default function CustomerDashboard() {
         </Link>
       </div>
 
-      {/* Main Content: Recent Requests */}
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-bold">Recent Service Requests</h2>
@@ -180,7 +179,7 @@ export default function CustomerDashboard() {
                     <CardTitle className="text-xl font-bold">{job.serviceType}</CardTitle>
                     <div className="flex items-center text-xs text-muted-foreground gap-1">
                       <Clock className="h-3 w-3" /> 
-                      {job.createdAt?.seconds ? new Date(job.createdAt.seconds * 1000).toLocaleDateString() : 'Just now'}
+                      {formatDate(job.createdAt)}
                     </div>
                   </div>
                   {getStatusBadge(job.status)}
@@ -191,7 +190,7 @@ export default function CustomerDashboard() {
                   </p>
                   <div className="flex items-center text-sm text-muted-foreground gap-2 pt-2">
                     <MapPin className="h-4 w-4 text-primary shrink-0" /> 
-                    <span className="truncate">{job.jobLocationAddress || job.location || 'Address not specified'}</span>
+                    <span className="truncate">{job.jobLocationAddress || 'Address not specified'}</span>
                   </div>
                   {job.workerName && (
                     <div className="pt-3 flex items-center gap-3 border-t">
