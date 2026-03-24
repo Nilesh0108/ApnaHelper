@@ -1,59 +1,86 @@
-
 "use client";
 
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { getJobs, getAllUsers, banUser } from "@/lib/mock-data";
-import { JobRequest, User } from "@/lib/types";
-import { Users, Briefcase, CheckCircle2, AlertTriangle, Ban, BarChart3 } from "lucide-react";
+import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
+import { collection, doc, updateDoc, query, orderBy, limit, serverTimestamp } from "firebase/firestore";
+import { Users, Briefcase, CheckCircle2, Ban, BarChart3, Loader2, ShieldCheck } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
 export default function AdminDashboard() {
-  const [users, setUsers] = useState<User[]>([]);
-  const [jobs, setJobs] = useState<JobRequest[]>([]);
+  const db = useFirestore();
 
-  useEffect(() => {
-    setUsers(getAllUsers());
-    setJobs(getJobs());
-  }, []);
+  // Queries for real-time data
+  const usersQuery = useMemoFirebase(() => collection(db, "users"), [db]);
+  const jobsQuery = useMemoFirebase(() => collection(db, "service_requests"), [db]);
+  const recentJobsQuery = useMemoFirebase(() => 
+    query(collection(db, "service_requests"), orderBy("createdAt", "desc"), limit(5)), 
+  [db]);
 
-  const handleBanUser = (userId: string) => {
-    const updated = banUser(userId);
-    setUsers(updated);
-    toast({
-      title: "User Banned",
-      description: "Access has been restricted for this account.",
-    });
+  const { data: allUsers, isLoading: isUsersLoading } = useCollection(usersQuery);
+  const { data: allJobs, isLoading: isJobsLoading } = useCollection(jobsQuery);
+  const { data: recentJobs, isLoading: isRecentLoading } = useCollection(recentJobsQuery);
+
+  const handleUpdateUserStatus = async (userId: string, newStatus: string) => {
+    try {
+      await updateDoc(doc(db, "users", userId), {
+        status: newStatus,
+        updatedAt: serverTimestamp()
+      });
+      toast({
+        title: "Status Updated",
+        description: `User account is now ${newStatus}.`,
+      });
+    } catch (e: any) {
+      toast({
+        variant: "destructive",
+        title: "Operation Failed",
+        description: e.message,
+      });
+    }
   };
 
-  const stats = {
-    totalUsers: users.length,
-    totalJobs: jobs.length,
-    activeJobs: jobs.filter(j => j.status === 'accepted' || j.status === 'in-progress').length,
-    completedJobs: jobs.filter(j => j.status === 'completed').length,
-  };
+  const stats = useMemo(() => {
+    if (!allUsers || !allJobs) return { totalUsers: 0, totalJobs: 0, activeJobs: 0, completedJobs: 0 };
+    
+    return {
+      totalUsers: allUsers.length,
+      totalJobs: allJobs.length,
+      activeJobs: allJobs.filter(j => j.status === 'ACCEPTED' || j.status === 'IN_PROGRESS').length,
+      completedJobs: allJobs.filter(j => j.status === 'COMPLETED').length,
+    };
+  }, [allUsers, allJobs]);
+
+  if (isUsersLoading || isJobsLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="text-muted-foreground">Synchronizing platform data...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto py-10 px-4 space-y-8">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">System Analytics</h1>
-        <p className="text-muted-foreground">Monitor platform activity and manage community safety.</p>
+        <p className="text-muted-foreground">Live monitoring of users and service activities across TechVeda.</p>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-        <Card className="bg-white">
+        <Card className="bg-white border-l-4 border-l-primary">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <Users className="h-5 w-5 text-primary" />
               <div className="text-2xl font-bold">{stats.totalUsers}</div>
             </div>
-            <div className="text-sm text-muted-foreground mt-2">Total Users</div>
+            <div className="text-sm text-muted-foreground mt-2">Registered Users</div>
           </CardContent>
         </Card>
-        <Card className="bg-white">
+        <Card className="bg-white border-l-4 border-l-secondary">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <Briefcase className="h-5 w-5 text-secondary" />
@@ -62,7 +89,7 @@ export default function AdminDashboard() {
             <div className="text-sm text-muted-foreground mt-2">Total Service Requests</div>
           </CardContent>
         </Card>
-        <Card className="bg-white">
+        <Card className="bg-white border-l-4 border-l-orange-500">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <BarChart3 className="h-5 w-5 text-orange-500" />
@@ -71,7 +98,7 @@ export default function AdminDashboard() {
             <div className="text-sm text-muted-foreground mt-2">Active Jobs</div>
           </CardContent>
         </Card>
-        <Card className="bg-white">
+        <Card className="bg-white border-l-4 border-l-green-500">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <CheckCircle2 className="h-5 w-5 text-green-500" />
@@ -86,71 +113,93 @@ export default function AdminDashboard() {
         <Card>
           <CardHeader>
             <CardTitle>User Management</CardTitle>
-            <CardDescription>Review and manage access for platform participants.</CardDescription>
+            <CardDescription>Verify accounts or restrict access for platform safety.</CardDescription>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Action</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {users.map(u => (
-                  <TableRow key={u.id}>
-                    <TableCell className="font-medium">
-                      <div className="flex flex-col">
-                        <span>{u.name}</span>
-                        <span className="text-xs text-muted-foreground">{u.email}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="capitalize">{u.role}</TableCell>
-                    <TableCell>
-                      {u.isBanned ? (
-                        <Badge variant="destructive">Banned</Badge>
-                      ) : (
-                        <Badge variant="outline" className="text-green-600 border-green-200">Active</Badge>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="text-destructive hover:text-destructive"
-                        disabled={u.isBanned || u.role === 'admin'}
-                        onClick={() => handleBanUser(u.id)}
-                      >
-                        <Ban className="h-4 w-4 mr-1" /> Ban
-                      </Button>
-                    </TableCell>
+            <div className="rounded-md border overflow-hidden">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-slate-50">
+                    <TableHead>User</TableHead>
+                    <TableHead>Role</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Action</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {allUsers?.map(u => (
+                    <TableRow key={u.id}>
+                      <TableCell className="font-medium">
+                        <div className="flex flex-col">
+                          <span>{u.firstName} {u.lastName}</span>
+                          <span className="text-[10px] text-muted-foreground">{u.email}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="capitalize text-[10px]">
+                          {u.role}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {u.status === 'active' ? (
+                          <Badge className="bg-green-100 text-green-700 hover:bg-green-100 border-none">Active</Badge>
+                        ) : (
+                          <Badge variant="destructive">Banned</Badge>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {u.role !== 'admin' && (
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className={u.status === 'active' ? "text-destructive" : "text-green-600"}
+                            onClick={() => handleUpdateUserStatus(u.id, u.status === 'active' ? 'banned' : 'active')}
+                          >
+                            {u.status === 'active' ? (
+                              <><Ban className="h-3 w-3 mr-1" /> Ban</>
+                            ) : (
+                              <><ShieldCheck className="h-3 w-3 mr-1" /> Activate</>
+                            )}
+                          </Button>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
             <CardTitle>Recent Job Activity</CardTitle>
-            <CardDescription>Tracking real-time service requests and status changes.</CardDescription>
+            <CardDescription>Live feed of latest 5 service requests.</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {jobs.slice(-5).reverse().map(job => (
-                <div key={job.id} className="flex items-center justify-between p-3 border rounded-lg bg-slate-50">
-                  <div className="space-y-1">
-                    <div className="font-semibold text-sm">{job.serviceType}</div>
-                    <div className="text-xs text-muted-foreground">For: {job.customerName}</div>
+              {isRecentLoading ? (
+                <div className="flex justify-center py-10"><Loader2 className="animate-spin text-muted-foreground" /></div>
+              ) : !recentJobs || recentJobs.length === 0 ? (
+                <p className="text-center text-sm text-muted-foreground py-10">No job activity yet.</p>
+              ) : (
+                recentJobs.map(job => (
+                  <div key={job.id} className="flex items-center justify-between p-4 border rounded-xl bg-slate-50 hover:bg-slate-100 transition-colors">
+                    <div className="space-y-1">
+                      <div className="font-bold text-sm text-primary">{job.serviceType}</div>
+                      <div className="text-[10px] text-muted-foreground">Customer: {job.customerName}</div>
+                    </div>
+                    <div className="flex flex-col items-end gap-1">
+                      <Badge variant="secondary" className="text-[10px] px-2">
+                        {job.status}
+                      </Badge>
+                      <span className="text-[9px] text-muted-foreground">
+                        {job.createdAt?.seconds ? new Date(job.createdAt.seconds * 1000).toLocaleDateString() : 'New'}
+                      </span>
+                    </div>
                   </div>
-                  <Badge variant="secondary" className="text-[10px] h-5">
-                    {job.status.toUpperCase()}
-                  </Badge>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </CardContent>
         </Card>
