@@ -16,7 +16,10 @@ service cloud.firestore {
     }
 
     match /users/{userId} {
-      allow get: if isSignedIn() && (isOwner(userId) || isAdmin());
+      // Allow any signed-in user to GET a profile. This is essential for:
+      // 1. Customers viewing Worker profiles (who bidded or are assigned)
+      // 2. Workers viewing Customer profiles (to coordinate service)
+      allow get: if isSignedIn();
       allow list: if isAdmin();
       allow create: if isOwner(userId);
       allow update: if isOwner(userId) || isAdmin();
