@@ -1,11 +1,58 @@
 
+"use client";
+
+import { useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { ShieldCheck, User, Hammer, LayoutDashboard, CheckCircle2 } from 'lucide-react';
+import { ShieldCheck, User, Hammer, LayoutDashboard, CheckCircle2, Loader2 } from 'lucide-react';
+import { useUser, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
+import { doc } from "firebase/firestore";
 
 export default function Home() {
+  const router = useRouter();
+  const { user, isUserLoading } = useUser();
+  const db = useFirestore();
+
+  // Fetch role from Firestore for logged in user
+  const userDocRef = useMemoFirebase(() => {
+    if (!user) return null;
+    return doc(db, 'users', user.uid);
+  }, [user, db]);
+
+  const { data: profile, isLoading: isProfileLoading } = useDoc(userDocRef);
+
+  useEffect(() => {
+    if (!isUserLoading && !isProfileLoading && user && profile?.role) {
+      if (profile.role === 'customer') router.replace("/customer/dashboard");
+      else if (profile.role === 'worker') router.replace("/worker/dashboard");
+      else if (profile.role === 'admin') router.replace("/admin/dashboard");
+    }
+  }, [user, profile, isUserLoading, isProfileLoading, router]);
+
+  // Show a clean loading state while determining redirection
+  if (isUserLoading || (user && isProfileLoading)) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-background">
+        <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
+        <p className="text-muted-foreground font-medium">Entering your workspace...</p>
+      </div>
+    );
+  }
+
+  // If user is logged in but the redirect hasn't happened yet (very brief), 
+  // or if user is not logged in, show the public landing page.
+  if (user && profile?.role) {
+      return (
+        <div className="flex flex-col items-center justify-center min-h-screen bg-background">
+          <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
+          <p className="text-muted-foreground font-medium">Redirecting...</p>
+        </div>
+      );
+  }
+
   return (
     <div className="flex flex-col flex-1">
       {/* Hero Section */}
