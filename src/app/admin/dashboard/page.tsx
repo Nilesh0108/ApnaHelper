@@ -71,7 +71,7 @@ export default function AdminDashboard() {
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-        <Card className="bg-white border-l-4 border-l-primary">
+        <Card className="bg-card border-l-4 border-l-primary shadow-sm">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <Users className="h-5 w-5 text-primary" />
@@ -80,7 +80,7 @@ export default function AdminDashboard() {
             <div className="text-sm text-muted-foreground mt-2">Registered Users</div>
           </CardContent>
         </Card>
-        <Card className="bg-white border-l-4 border-l-secondary">
+        <Card className="bg-card border-l-4 border-l-secondary shadow-sm">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <Briefcase className="h-5 w-5 text-secondary" />
@@ -89,7 +89,7 @@ export default function AdminDashboard() {
             <div className="text-sm text-muted-foreground mt-2">Total Service Requests</div>
           </CardContent>
         </Card>
-        <Card className="bg-white border-l-4 border-l-orange-500">
+        <Card className="bg-card border-l-4 border-l-orange-500 shadow-sm">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <BarChart3 className="h-5 w-5 text-orange-500" />
@@ -98,7 +98,7 @@ export default function AdminDashboard() {
             <div className="text-sm text-muted-foreground mt-2">Active Jobs</div>
           </CardContent>
         </Card>
-        <Card className="bg-white border-l-4 border-l-green-500">
+        <Card className="bg-card border-l-4 border-l-green-500 shadow-sm">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <CheckCircle2 className="h-5 w-5 text-green-500" />
@@ -119,7 +119,7 @@ export default function AdminDashboard() {
             <div className="rounded-md border overflow-hidden">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-slate-50">
+                  <TableRow className="bg-muted/50">
                     <TableHead>User</TableHead>
                     <TableHead>Role</TableHead>
                     <TableHead>Status</TableHead>
@@ -142,7 +142,7 @@ export default function AdminDashboard() {
                       </TableCell>
                       <TableCell>
                         {u.status === 'active' ? (
-                          <Badge className="bg-green-100 text-green-700 hover:bg-green-100 border-none">Active</Badge>
+                          <Badge className="bg-green-100 text-green-700 hover:bg-green-100 border-none dark:bg-green-900/30 dark:text-green-400">Active</Badge>
                         ) : (
                           <Badge variant="destructive">Banned</Badge>
                         )}
@@ -152,7 +152,7 @@ export default function AdminDashboard() {
                           <Button 
                             variant="ghost" 
                             size="sm" 
-                            className={u.status === 'active' ? "text-destructive" : "text-green-600"}
+                            className={u.status === 'active' ? "text-destructive" : "text-green-600 dark:text-green-400"}
                             onClick={() => handleUpdateUserStatus(u.id, u.status === 'active' ? 'banned' : 'active')}
                           >
                             {u.status === 'active' ? (
@@ -184,7 +184,7 @@ export default function AdminDashboard() {
                 <p className="text-center text-sm text-muted-foreground py-10">No job activity yet.</p>
               ) : (
                 recentJobs.map(job => (
-                  <div key={job.id} className="flex items-center justify-between p-4 border rounded-xl bg-slate-50 hover:bg-slate-100 transition-colors">
+                  <div key={job.id} className="flex items-center justify-between p-4 border rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors">
                     <div className="space-y-1">
                       <div className="font-bold text-sm text-primary">{job.serviceType}</div>
                       <div className="text-[10px] text-muted-foreground">Customer: {job.customerName}</div>

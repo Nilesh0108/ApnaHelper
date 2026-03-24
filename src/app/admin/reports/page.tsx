@@ -112,7 +112,7 @@ export default function AdminReports() {
       </div>
 
       <div className="grid md:grid-cols-4 gap-6">
-        <Card className="bg-white">
+        <Card>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <TrendingUp className="h-5 w-5 text-green-600" />
@@ -121,7 +121,7 @@ export default function AdminReports() {
             <div className="text-sm text-muted-foreground mt-2">Total Platform Revenue</div>
           </CardContent>
         </Card>
-        <Card className="bg-white">
+        <Card>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <Users className="h-5 w-5 text-blue-600" />
@@ -130,7 +130,7 @@ export default function AdminReports() {
             <div className="text-sm text-muted-foreground mt-2">Active Community</div>
           </CardContent>
         </Card>
-        <Card className="bg-white">
+        <Card>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <CheckCircle2 className="h-5 w-5 text-purple-600" />
@@ -139,7 +139,7 @@ export default function AdminReports() {
             <div className="text-sm text-muted-foreground mt-2">Success Rate</div>
           </CardContent>
         </Card>
-        <Card className="bg-white">
+        <Card>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <Star className="h-5 w-5 text-yellow-500" />
@@ -174,7 +174,13 @@ export default function AdminReports() {
                   ))}
                 </Pie>
                 <Tooltip 
-                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }}
+                  contentStyle={{ 
+                    borderRadius: '12px', 
+                    border: 'none', 
+                    boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
+                    backgroundColor: 'hsl(var(--card))',
+                    color: 'hsl(var(--card-foreground))'
+                  }}
                 />
                 <Legend verticalAlign="bottom" height={36}/>
               </PieChart>
@@ -190,11 +196,17 @@ export default function AdminReports() {
           <CardContent className="h-[350px]">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={reportsData?.growthData}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#88888820" />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} />
                 <YAxis axisLine={false} tickLine={false} />
                 <Tooltip 
-                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }}
+                  contentStyle={{ 
+                    borderRadius: '12px', 
+                    border: 'none', 
+                    boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
+                    backgroundColor: 'hsl(var(--card))',
+                    color: 'hsl(var(--card-foreground))'
+                  }}
                 />
                 <Line 
                   type="monotone" 
@@ -210,7 +222,7 @@ export default function AdminReports() {
         </Card>
       </div>
 
-      <Card className="bg-slate-50 border-dashed">
+      <Card className="bg-muted/30 border-dashed">
         <CardHeader>
           <CardTitle className="text-lg">Real-Time Insight Summary</CardTitle>
         </CardHeader>
