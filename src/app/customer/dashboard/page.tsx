@@ -6,9 +6,10 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useUser, useFirestore, useCollection, useDoc, useMemoFirebase } from "@/firebase";
-import { collection, query, where, doc, updateDoc, serverTimestamp } from "firebase/firestore";
+import { collection, query, where, doc, updateDoc, serverTimestamp, deleteDoc } from "firebase/firestore";
 import { 
   Plus, 
   Clock, 
@@ -20,7 +21,10 @@ import {
   HelpCircle,
   Sparkles,
   Loader2,
-  DollarSign
+  DollarSign,
+  Trash2,
+  CheckCircle2,
+  Circle
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
@@ -71,6 +75,18 @@ export default function CustomerDashboard() {
     }
   };
 
+  const handleDeleteJob = async (jobId: string) => {
+    try {
+      await deleteDoc(doc(db, 'service_requests', jobId));
+      toast({
+        title: "Request Removed",
+        description: "Your service request has been successfully deleted.",
+      });
+    } catch (e: any) {
+      toast({ variant: "destructive", title: "Delete Failed", description: e.message });
+    }
+  };
+
   if (isUserLoading) return (
     <div className="flex flex-col items-center justify-center min-h-[60vh]">
       <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -98,6 +114,45 @@ export default function CustomerDashboard() {
             <Button size="sm" onClick={() => handleSelectQuote(jobId, quote)}>Select This Quote</Button>
           </div>
         ))}
+      </div>
+    );
+  };
+
+  const ProgressTracker = ({ job }: { job: any }) => {
+    const steps = [
+      { id: 'PENDING', label: 'Request Posted', date: job.createdAt },
+      { id: 'ACCEPTED', label: 'Worker Assigned', date: job.acceptedAt },
+      { id: 'IN_PROGRESS', label: 'Work Started', date: job.updatedAt },
+      { id: 'COMPLETED', label: 'Completed', date: job.completedAt }
+    ];
+
+    const currentIdx = steps.findIndex(s => s.id === job.status);
+
+    return (
+      <div className="space-y-6 py-6 px-2">
+        {steps.map((step, idx) => {
+          const isDone = idx <= currentIdx;
+          const isCurrent = idx === currentIdx;
+          
+          return (
+            <div key={step.id} className="flex gap-4 items-start relative">
+              {idx !== steps.length - 1 && (
+                <div className={`absolute left-3 top-6 w-[2px] h-10 ${idx < currentIdx ? 'bg-primary' : 'bg-slate-200'}`} />
+              )}
+              <div className={`mt-1 z-10 p-1 rounded-full ${isDone ? 'bg-primary text-white' : 'bg-slate-100 text-slate-300'}`}>
+                {isDone ? <CheckCircle2 className="h-4 w-4" /> : <Circle className="h-4 w-4" />}
+              </div>
+              <div className="space-y-1">
+                <p className={`font-bold text-sm ${isCurrent ? 'text-primary' : 'text-foreground'}`}>{step.label}</p>
+                {isDone && step.date && (
+                  <p className="text-[10px] text-muted-foreground">
+                    {new Date(step.date.seconds * 1000).toLocaleString()}
+                  </p>
+                )}
+              </div>
+            </div>
+          );
+        })}
       </div>
     );
   };
@@ -154,7 +209,32 @@ export default function CustomerDashboard() {
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {sortedJobs.map((job: any) => (
-              <Card key={job.id} className="hover:shadow-xl transition-all duration-300 border-t-4 border-t-primary">
+              <Card key={job.id} className="hover:shadow-xl transition-all duration-300 border-t-4 border-t-primary relative">
+                <div className="absolute top-4 right-4">
+                  {job.status === 'PENDING' && (
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="ghost" size="icon" className="text-destructive hover:bg-destructive/10">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This will permanently delete your service request for {job.serviceType}. This action cannot be undone.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction className="bg-destructive" onClick={() => handleDeleteJob(job.id)}>
+                            Delete Request
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  )}
+                </div>
                 <CardHeader className="flex flex-row items-start justify-between">
                   <div className="space-y-1">
                     <CardTitle className="text-xl font-bold">{job.serviceType}</CardTitle>
@@ -188,10 +268,26 @@ export default function CustomerDashboard() {
                         <QuotesView jobId={job.id} />
                       </DialogContent>
                     </Dialog>
+                  ) : job.status !== 'COMPLETED' ? (
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button variant="outline" className="w-full" size="sm">
+                          Track Progress <ArrowRight className="ml-2 h-4 w-4" />
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Job Tracking: {job.serviceType}</DialogTitle>
+                        </DialogHeader>
+                        <ProgressTracker job={job} />
+                      </DialogContent>
+                    </Dialog>
                   ) : (
-                    <Button variant="ghost" className="w-full" size="sm">
-                      Track Progress <ArrowRight className="ml-2 h-4 w-4" />
-                    </Button>
+                    <Link href="/customer/history" className="w-full">
+                      <Button variant="ghost" className="w-full" size="sm">
+                        View Completed Task
+                      </Button>
+                    </Link>
                   )}
                 </CardFooter>
               </Card>
