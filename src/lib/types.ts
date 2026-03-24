@@ -27,6 +27,10 @@ export interface JobRequest {
   areaCityPincode: string;
   state: string;
   actualCost?: number;
+  workerRating?: number;
+  workerFeedback?: string;
+  customerRating?: number;
+  customerFeedback?: string;
 }
 
 export interface Quote {

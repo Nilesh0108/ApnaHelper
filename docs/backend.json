@@ -187,6 +187,22 @@
           "type": "string",
           "description": "The current status of the service request (PENDING, ACCEPTED, IN_PROGRESS, COMPLETED)."
         },
+        "workerRating": {
+          "type": "number",
+          "description": "Rating given by the customer to the worker (1-5)."
+        },
+        "workerFeedback": {
+          "type": "string",
+          "description": "Feedback given by the customer to the worker."
+        },
+        "customerRating": {
+          "type": "number",
+          "description": "Rating given by the worker to the customer (1-5)."
+        },
+        "customerFeedback": {
+          "type": "string",
+          "description": "Feedback given by the worker to the customer."
+        },
         "createdAt": {
           "type": "string",
           "format": "date-time"

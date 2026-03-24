@@ -33,6 +33,7 @@ service cloud.firestore {
     }
 
     match /service_requests/{serviceRequestId} {
+      // Broad read for all signed in users to allow listing and worker discovery
       allow read: if isSignedIn();
       allow create: if isSignedIn() && request.resource.data.customerId == request.auth.uid;
       allow update: if isSignedIn() && (
@@ -41,16 +42,12 @@ service cloud.firestore {
         isAdmin() ||
         (resource.data.status == 'PENDING' && request.resource.data.workerId != null)
       );
-      allow delete: if (resource != null && resource.data.customerId == request.auth.uid) || isAdmin();
+      allow delete: if (resource != null && (resource.data.customerId == request.auth.uid || isAdmin()));
 
       match /quotes/{quoteId} {
-        allow read: if isSignedIn() && (
-          get(/databases/$(database)/documents/service_requests/$(serviceRequestId)).data.customerId == request.auth.uid ||
-          request.auth.uid == resource.data.workerId ||
-          request.auth.uid == request.resource.data.workerId
-        );
+        allow read: if isSignedIn();
         allow create: if isSignedIn() && request.resource.data.workerId == request.auth.uid;
-        allow delete: if isSignedIn() && resource.data.workerId == request.auth.uid;
+        allow delete: if isSignedIn() && (resource.data.workerId == request.auth.uid || isAdmin());
       }
     }
 

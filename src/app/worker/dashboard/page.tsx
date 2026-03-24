@@ -13,11 +13,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from "@/firebase";
 import { collection, query, doc, updateDoc, serverTimestamp, addDoc, where } from "firebase/firestore";
 import { toast } from "@/hooks/use-toast";
-import { MapPin, Clock, Hammer, CheckCircle2, AlertCircle, Loader2, DollarSign, Send } from "lucide-react";
+import { MapPin, Clock, Hammer, CheckCircle2, AlertCircle, Loader2, DollarSign, Send, Star } from "lucide-react";
 
 /**
- * A standalone component for the Quote Dialog content to isolate state updates
- * and prevent the main dashboard from re-rendering while typing.
+ * A standalone component for the Quote Dialog content
  */
 function QuoteDialog({ job, user, profile }: { job: any; user: any; profile: any }) {
   const db = useFirestore();
@@ -48,7 +47,7 @@ function QuoteDialog({ job, user, profile }: { job: any; user: any; profile: any
       });
       setQuotePrice("");
       setQuoteMessage("");
-      setOpen(false); // Close dialog on success
+      setOpen(false);
     } catch (e: any) {
       toast({
         variant: "destructive",
@@ -105,14 +104,69 @@ function QuoteDialog({ job, user, profile }: { job: any; user: any; profile: any
 }
 
 /**
- * Independent JobCard component to prevent unnecessary remounts
+ * Dialog to allow Worker to rate the Customer upon job completion
  */
-function JobCard({ job, isAvailable, user, profile, onStatusUpdate }: { 
+function CompleteJobDialog({ job, onComplete }: { job: any; onComplete: (rating: number, feedback: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const [rating, setRating] = useState(5);
+  const [feedback, setFeedback] = useState("");
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button className="w-full bg-green-600 hover:bg-green-700">Complete Job</Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Finish & Rate Customer</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-6 py-4">
+          <div className="space-y-2 text-center">
+            <Label>How was your experience with {job.customerName}?</Label>
+            <div className="flex justify-center gap-2 mt-2">
+              {[1, 2, 3, 4, 5].map((s) => (
+                <Star
+                  key={s}
+                  className={`h-8 w-8 cursor-pointer transition-colors ${s <= rating ? 'fill-yellow-400 text-yellow-400' : 'text-slate-300'}`}
+                  onClick={() => setRating(s)}
+                />
+              ))}
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="customer-feedback">Private Feedback for Customer</Label>
+            <Textarea 
+              id="customer-feedback"
+              placeholder="Polite, clear instructions, timely payment, etc."
+              value={feedback}
+              onChange={(e) => setFeedback(e.target.value)}
+              className="resize-none h-24"
+            />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button className="w-full" onClick={() => {
+            onComplete(rating, feedback);
+            setOpen(false);
+          }}>
+            Submit & Close Job
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/**
+ * Independent JobCard component
+ */
+function JobCard({ job, isAvailable, user, profile, onStatusUpdate, onCompleteJob }: { 
   job: any; 
   isAvailable: boolean; 
   user: any;
   profile: any;
-  onStatusUpdate: (id: string, s: string) => void 
+  onStatusUpdate: (id: string, s: string) => void;
+  onCompleteJob: (id: string, rating: number, feedback: string) => void;
 }) {
   return (
     <Card className="hover:shadow-md transition-shadow overflow-hidden border-t-4 border-t-primary h-full flex flex-col">
@@ -140,20 +194,32 @@ function JobCard({ job, isAvailable, user, profile, onStatusUpdate }: {
           <p className="text-xs text-muted-foreground pl-5">{job.apartment}, {job.landmark}</p>
         </div>
       </CardContent>
-      <CardFooter className="flex gap-2 bg-slate-50/50 pt-4">
+      <CardFooter className="flex flex-col gap-2 bg-slate-50/50 pt-4">
         {isAvailable ? (
           <QuoteDialog job={job} user={user} profile={profile} />
         ) : (
-          <div className="w-full">
+          <div className="w-full space-y-2">
             {job.status === 'ACCEPTED' && (
               <Button className="w-full" onClick={() => onStatusUpdate(job.id, 'IN_PROGRESS')}>Start Work</Button>
             )}
             {job.status === 'IN_PROGRESS' && (
-              <Button className="w-full bg-green-600 hover:bg-green-700" onClick={() => onStatusUpdate(job.id, 'COMPLETED')}>Complete Job</Button>
+              <CompleteJobDialog job={job} onComplete={(r, f) => onCompleteJob(job.id, r, f)} />
             )}
             {job.status === 'COMPLETED' && (
-              <div className="flex items-center gap-2 text-green-600 font-bold text-sm w-full justify-center py-2">
-                <CheckCircle2 className="h-4 w-4" /> COMPLETED
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-green-600 font-bold text-sm w-full justify-center py-1">
+                  <CheckCircle2 className="h-4 w-4" /> COMPLETED
+                </div>
+                {job.workerRating && (
+                  <div className="flex items-center justify-center gap-1 bg-white p-2 rounded-lg border text-xs">
+                    <span className="text-muted-foreground">My Rating:</span>
+                    <div className="flex">
+                      {[1, 2, 3, 4, 5].map(s => (
+                        <Star key={s} className={`h-3 w-3 ${s <= job.workerRating ? 'fill-yellow-400 text-yellow-400' : 'text-slate-200'}`} />
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -173,7 +239,6 @@ export default function WorkerDashboard() {
   }, [user, db]);
   const { data: profile } = useDoc(userDocRef);
 
-  // Filter available jobs by the worker's state for better relevance
   const availableJobsQuery = useMemoFirebase(() => {
     if (!db || !profile?.state) return null;
     return query(
@@ -206,11 +271,26 @@ export default function WorkerDashboard() {
     }
   };
 
+  const handleCompleteJob = async (jobId: string, rating: number, feedback: string) => {
+    try {
+      await updateDoc(doc(db, 'service_requests', jobId), {
+        status: 'COMPLETED',
+        customerRating: rating,
+        customerFeedback: feedback,
+        completedAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+      toast({ title: "Job Finalized", description: "Feedback submitted and job closed." });
+    } catch (e: any) {
+      toast({ variant: "destructive", title: "Error", description: e.message });
+    }
+  };
+
   if (isUserLoading || isAvailableLoading || isMyJobsLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <p className="text-muted-foreground animate-pulse">Scanning for nearby jobs in {profile?.state || 'your region'}...</p>
+        <p className="text-muted-foreground animate-pulse">Scanning for nearby jobs...</p>
       </div>
     );
   }
@@ -253,6 +333,7 @@ export default function WorkerDashboard() {
                   user={user} 
                   profile={profile}
                   onStatusUpdate={handleStatusUpdate} 
+                  onCompleteJob={handleCompleteJob}
                 />
               ))}
             </div>
@@ -276,6 +357,7 @@ export default function WorkerDashboard() {
                   user={user} 
                   profile={profile}
                   onStatusUpdate={handleStatusUpdate} 
+                  onCompleteJob={handleCompleteJob}
                 />
               ))}
             </div>

@@ -2,12 +2,89 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebase";
-import { collection, query, where } from "firebase/firestore";
-import { Calendar, History, Loader2, MapPin } from "lucide-react";
+import { collection, query, where, doc, updateDoc, serverTimestamp } from "firebase/firestore";
+import { Calendar, History, Loader2, MapPin, Star, CheckCircle2 } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
+
+/**
+ * Dialog for Customer to rate the Worker
+ */
+function RateWorkerDialog({ job }: { job: any }) {
+  const db = useFirestore();
+  const [open, setOpen] = useState(false);
+  const [rating, setRating] = useState(5);
+  const [feedback, setFeedback] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+    try {
+      await updateDoc(doc(db, 'service_requests', job.id), {
+        workerRating: rating,
+        workerFeedback: feedback,
+        updatedAt: serverTimestamp()
+      });
+      toast({ title: "Rating Submitted", description: "Thank you for sharing your experience!" });
+      setOpen(false);
+    } catch (e: any) {
+      toast({ variant: "destructive", title: "Error", description: e.message });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button size="sm" variant="outline" className="border-primary text-primary hover:bg-primary hover:text-white">
+          Rate Provider
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Rate {job.workerName}</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-6 py-4">
+          <div className="space-y-2 text-center">
+            <Label>How would you rate the service?</Label>
+            <div className="flex justify-center gap-2 mt-2">
+              {[1, 2, 3, 4, 5].map((s) => (
+                <Star
+                  key={s}
+                  className={`h-8 w-8 cursor-pointer transition-colors ${s <= rating ? 'fill-yellow-400 text-yellow-400' : 'text-slate-300'}`}
+                  onClick={() => setRating(s)}
+                />
+              ))}
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="worker-feedback">Tell us more about the work...</Label>
+            <Textarea 
+              id="worker-feedback"
+              placeholder="e.g. Prompt, professional, and high quality work."
+              value={feedback}
+              onChange={(e) => setFeedback(e.target.value)}
+              className="resize-none h-24"
+            />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button className="w-full" onClick={handleSubmit} disabled={isSubmitting}>
+            {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Submit Feedback"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 export default function CustomerHistory() {
   const { user } = useUser();
@@ -36,7 +113,6 @@ export default function CustomerHistory() {
       });
     }
 
-    // Sort by newest first
     return result.sort((a: any, b: any) => {
       const timeA = a.createdAt?.seconds || 0;
       const timeB = b.createdAt?.seconds || 0;
@@ -128,6 +204,25 @@ export default function CustomerHistory() {
                   </div>
                 </div>
               </CardContent>
+              {job.status === 'COMPLETED' && (
+                <CardFooter className="bg-slate-50/50 py-3 flex justify-between items-center px-6 border-t">
+                  {job.workerRating ? (
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-medium text-muted-foreground">Your Rating:</span>
+                      <div className="flex">
+                        {[1, 2, 3, 4, 5].map(s => (
+                          <Star key={s} className={`h-4 w-4 ${s <= job.workerRating ? 'fill-yellow-400 text-yellow-400' : 'text-slate-200'}`} />
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 text-primary text-sm font-medium">
+                      <CheckCircle2 className="h-4 w-4" /> Ready for feedback
+                    </div>
+                  )}
+                  {!job.workerRating && <RateWorkerDialog job={job} />}
+                </CardFooter>
+              )}
             </Card>
           ))
         )}
