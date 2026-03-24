@@ -73,7 +73,7 @@ function LoginForm() {
           </div>
           <CardTitle className="text-3xl font-bold">Welcome Back</CardTitle>
           <CardDescription>
-            Enter your credentials to access your HomeServ Connect account
+            Enter your credentials to access your ApnaHelper account
           </CardDescription>
         </CardHeader>
         <CardContent>

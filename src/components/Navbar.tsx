@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from "next/link";
@@ -120,7 +119,7 @@ export default function Navbar() {
             <Home className="text-primary-foreground h-5 w-5" />
           </div>
           <span className="font-bold text-xl text-primary hidden sm:block">
-            HomeServ <span className="text-secondary">Connect</span>
+            Apna<span className="text-secondary">Helper</span>
           </span>
         </Link>
 

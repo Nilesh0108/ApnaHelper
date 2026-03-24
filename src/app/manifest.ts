@@ -2,8 +2,8 @@ import { MetadataRoute } from 'next'
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'HomeServ Connect',
-    short_name: 'HomeServ',
+    name: 'ApnaHelper',
+    short_name: 'ApnaHelper',
     description: 'Expert home services at your doorstep.',
     start_url: '/',
     display: 'standalone',

@@ -4,12 +4,12 @@ import { FirebaseClientProvider } from '@/firebase/client-provider';
 import { ThemeProvider } from '@/components/theme-provider';
 
 export const metadata: Metadata = {
-  title: 'HomeServ Connect | Trusted Home Services',
+  title: 'ApnaHelper | Trusted Home Services',
   description: 'Connect with expert service providers for all your home needs.',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'HomeServ',
+    title: 'ApnaHelper',
   },
   formatDetection: {
     telephone: false,

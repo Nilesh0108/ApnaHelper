@@ -5,7 +5,7 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "UserProfile",
       "type": "object",
-      "description": "Represents a user of the HomeServ Connect application, encompassing customers, service providers (workers), and administrators. Stores core profile information and role.",
+      "description": "Represents a user of the ApnaHelper application, encompassing customers, service providers (workers), and administrators. Stores core profile information and role.",
       "properties": {
         "id": {
           "type": "string",
@@ -111,7 +111,7 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "ServiceCategory",
       "type": "object",
-      "description": "Defines a category of service offered within the HomeServ Connect platform (e.g., Plumbing, Electrical, HVAC).",
+      "description": "Defines a category of service offered within the ApnaHelper platform (e.g., Plumbing, Electrical, HVAC).",
       "properties": {
         "id": {
           "type": "string",

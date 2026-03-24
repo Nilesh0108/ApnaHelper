@@ -93,7 +93,7 @@ export default function RegisterPage() {
 
       toast({
         title: "Registration Successful",
-        description: `Welcome to HomeServ Connect, ${firstName}! ${assignedRole === 'admin' ? '(Admin Access Granted)' : ''}`,
+        description: `Welcome to ApnaHelper, ${firstName}! ${assignedRole === 'admin' ? '(Admin Access Granted)' : ''}`,
       });
       
       if (assignedRole === 'customer') router.push("/customer/dashboard");
@@ -123,7 +123,7 @@ export default function RegisterPage() {
           </div>
           <CardTitle className="text-3xl font-bold">Create Account</CardTitle>
           <CardDescription>
-            Join our community of home service experts and seekers
+            Join our community of home service experts and seekers at ApnaHelper
           </CardDescription>
         </CardHeader>
         <CardContent>

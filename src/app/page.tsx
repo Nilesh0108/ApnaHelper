@@ -64,7 +64,7 @@ export default function Home() {
               <span className="text-primary">at your doorstep.</span>
             </h1>
             <p className="text-xl text-muted-foreground max-w-lg">
-              Expert plumbing, electrical, and maintenance services simplified for modern living. Get it done right the first time.
+              Expert plumbing, electrical, and maintenance services simplified with <strong>ApnaHelper</strong>. Get it done right the first time.
             </p>
             <div className="flex flex-wrap gap-4 pt-4">
               <Link href="/login">
@@ -98,7 +98,7 @@ export default function Home() {
       <section className="py-24 container mx-auto px-4">
         <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
           <h2 className="text-3xl font-bold">Choose your path</h2>
-          <p className="text-muted-foreground">Join HomeServ Connect as a customer to get work done, or as a service provider to grow your business.</p>
+          <p className="text-muted-foreground">Join <strong>ApnaHelper</strong> as a customer to get work done, or as a service provider to grow your business.</p>
         </div>
         
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">

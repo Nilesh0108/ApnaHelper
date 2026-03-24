@@ -1,9 +1,9 @@
-# HomeServ Connect: Full System Specification & Prompt
+# ApnaHelper: Full System Specification & Prompt
 
-This document serves as a complete blueprint to recreate or extend the "HomeServ Connect" platform. It encompasses the architecture, user workflows, security models, and AI integration patterns.
+This document serves as a complete blueprint to recreate or extend the "ApnaHelper" platform. It encompasses the architecture, user workflows, security models, and AI integration patterns.
 
 ## 1. Project Overview
-**Tech Veda HomeServ Connect** is a professional marketplace connecting homeowners (Customers) with verified service providers (Workers) for tasks like plumbing, electrical work, and carpentry. It features a system-wide administrative layer for monitoring platform health and user safety.
+**ApnaHelper** is a professional marketplace connecting homeowners (Customers) with verified service providers (Workers) for tasks like plumbing, electrical work, and carpentry. It features a system-wide administrative layer for monitoring platform health and user safety.
 
 ### Tech Stack
 - **Framework**: Next.js 15 (App Router) with React 19.
