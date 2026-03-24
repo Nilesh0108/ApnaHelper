@@ -250,6 +250,21 @@
         }
       },
       "required": ["id", "serviceRequestId", "workerId", "workerName", "price", "createdAt"]
+    },
+    "Report": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Report",
+      "type": "object",
+      "description": "A support ticket or incident report submitted by a user.",
+      "properties": {
+        "id": { "type": "string" },
+        "reporterUserId": { "type": "string" },
+        "subject": { "type": "string" },
+        "description": { "type": "string" },
+        "status": { "type": "string", "enum": ["OPEN", "IN_PROGRESS", "RESOLVED"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "reporterUserId", "subject", "description", "status", "createdAt"]
     }
   },
   "auth": {
@@ -284,6 +299,15 @@
           "entityName": "Quote",
           "schema": {
             "$ref": "#/backend/entities/Quote"
+          }
+        }
+      },
+      {
+        "path": "/reports/{reportId}",
+        "definition": {
+          "entityName": "Report",
+          "schema": {
+            "$ref": "#/backend/entities/Report"
           }
         }
       }

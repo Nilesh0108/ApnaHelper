@@ -179,7 +179,7 @@ export default function CustomerDashboard() {
           { icon: Sparkles, label: 'Book Service', href: '/customer/request', color: 'bg-primary/10 text-primary' },
           { icon: History, label: 'Order History', href: '/customer/history', color: 'bg-secondary/10 text-secondary' },
           { icon: UserCircle, label: 'My Profile', href: '/customer/profile', color: 'bg-orange-50 text-orange-600' },
-          { icon: HelpCircle, label: 'Get Support', href: '#', color: 'bg-slate-100 text-slate-800' }
+          { icon: HelpCircle, label: 'Get Support', href: '/customer/support', color: 'bg-slate-100 text-slate-800' }
         ].map((action, idx) => (
           <Link key={idx} href={action.href}>
             <Card className="hover:border-primary/50 transition-colors cursor-pointer group h-full">
