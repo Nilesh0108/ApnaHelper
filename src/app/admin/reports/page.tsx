@@ -19,6 +19,7 @@ import {
 } from 'recharts';
 import { Download, Filter, Loader2, TrendingUp, Users, CheckCircle2, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { toast } from "@/hooks/use-toast";
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
 
@@ -33,6 +34,48 @@ export default function AdminReports() {
 
   const { data: users, isLoading: isUsersLoading } = useCollection(usersQuery);
   const { data: jobs, isLoading: isJobsLoading } = useCollection(jobsQuery);
+
+  // CSV Export Logic
+  const handleExport = () => {
+    if (!jobs || jobs.length === 0) {
+      toast({
+        variant: "destructive",
+        title: "No data to export",
+        description: "There are no service requests available to generate a report.",
+      });
+      return;
+    }
+
+    const headers = ["Job ID", "Service Type", "Status", "Customer", "Worker", "Cost (INR)", "Created Date"];
+    const rows = jobs.map(j => {
+      const date = j.createdAt?.seconds ? new Date(j.createdAt.seconds * 1000).toLocaleDateString() : 'N/A';
+      return [
+        j.id,
+        j.serviceType,
+        j.status,
+        `"${j.customerName || j.customerId}"`,
+        `"${j.workerName || j.workerId || 'Unassigned'}"`,
+        j.actualCost || 0,
+        date
+      ].join(",");
+    });
+
+    const csvContent = [headers.join(","), ...rows].join("\n");
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `ApnaHelper_Platform_Report_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    toast({
+      title: "Report Exported",
+      description: "Platform data has been downloaded as a CSV file.",
+    });
+  };
 
   // Calculate Reports Data
   const reportsData = useMemo(() => {
@@ -105,7 +148,7 @@ export default function AdminReports() {
           <Button variant="outline" size="sm">
             <Filter className="mr-2 h-4 w-4" /> Filter
           </Button>
-          <Button size="sm">
+          <Button size="sm" onClick={handleExport}>
             <Download className="mr-2 h-4 w-4" /> Export Report
           </Button>
         </div>
