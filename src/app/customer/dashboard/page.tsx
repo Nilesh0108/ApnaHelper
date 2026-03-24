@@ -54,6 +54,8 @@ export default function CustomerDashboard() {
 
   const sortedJobs = useMemo(() => {
     if (!rawJobs) return null;
+    // Filter out jobs that would appear in history instead if they are completed, 
+    // though the dashboard can show them, typically we show active ones here.
     return [...rawJobs].sort((a: any, b: any) => {
       const timeA = a.createdAt?.seconds || 0;
       const timeB = b.createdAt?.seconds || 0;
@@ -68,7 +70,8 @@ export default function CustomerDashboard() {
         workerId: quote.workerId,
         workerName: quote.workerName,
         actualCost: quote.price,
-        acceptedAt: serverTimestamp()
+        acceptedAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
       });
       toast({
         title: "Quote Accepted!",
@@ -266,24 +269,26 @@ export default function CustomerDashboard() {
             {sortedJobs.map((job: any) => (
               <Card key={job.id} className="hover:shadow-xl transition-all duration-300 border-t-4 border-t-primary relative">
                 <div className="absolute top-4 right-4">
-                  {job.status === 'PENDING' && (
+                  {job.status !== 'COMPLETED' && (
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
-                        <Button variant="ghost" size="icon" className="text-destructive hover:bg-destructive/10">
+                        <Button variant="ghost" size="icon" className="text-destructive hover:bg-destructive/10" title="Delete Request">
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </AlertDialogTrigger>
                       <AlertDialogContent>
                         <AlertDialogHeader>
-                          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                          <AlertDialogTitle>Cancel Service Request?</AlertDialogTitle>
                           <AlertDialogDescription>
-                            This will permanently delete your service request for {job.serviceType}. This action cannot be undone.
+                            {job.workerId 
+                              ? `A worker (${job.workerName}) is already assigned to this job. Deleting this will cancel the assignment permanently.` 
+                              : `This will permanently delete your service request for ${job.serviceType}. This action cannot be undone.`}
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction className="bg-destructive" onClick={() => handleDeleteJob(job.id)}>
-                            Delete Request
+                          <AlertDialogCancel>Keep Request</AlertDialogCancel>
+                          <AlertDialogAction className="bg-destructive hover:bg-destructive/90" onClick={() => handleDeleteJob(job.id)}>
+                            Delete Permanently
                           </AlertDialogAction>
                         </AlertDialogFooter>
                       </AlertDialogContent>
