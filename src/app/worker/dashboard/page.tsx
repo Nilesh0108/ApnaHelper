@@ -9,11 +9,56 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from "@/firebase";
 import { collection, query, doc, updateDoc, serverTimestamp, addDoc, where } from "firebase/firestore";
 import { toast } from "@/hooks/use-toast";
-import { MapPin, Clock, Hammer, CheckCircle2, AlertCircle, Loader2, DollarSign, Send, Star } from "lucide-react";
+import { MapPin, Clock, Hammer, CheckCircle2, AlertCircle, Loader2, DollarSign, Send, Star, User, Phone, Mail } from "lucide-react";
+
+/**
+ * Dialog for Worker to view Customer contact info
+ */
+function CustomerProfileView({ customerId }: { customerId: string }) {
+  const db = useFirestore();
+  const cRef = useMemoFirebase(() => doc(db, 'users', customerId), [customerId]);
+  const { data: customer, isLoading } = useDoc(cRef);
+
+  if (isLoading) return <Loader2 className="h-4 w-4 animate-spin mx-auto" />;
+  if (!customer) return <p>Customer profile not found.</p>;
+
+  return (
+    <div className="space-y-6 py-4">
+      <div className="flex flex-col items-center text-center space-y-4">
+        <Avatar className="h-20 w-20 border-2 border-primary/10">
+          <AvatarImage src={`https://picsum.photos/seed/${customerId}/100`} />
+          <AvatarFallback>{customer.firstName?.charAt(0)}</AvatarFallback>
+        </Avatar>
+        <div>
+          <h3 className="text-xl font-bold">{customer.firstName} {customer.lastName}</h3>
+          <p className="text-sm text-muted-foreground">Premium Client</p>
+        </div>
+      </div>
+
+      <div className="bg-primary/5 rounded-xl p-6 space-y-4">
+        <div className="flex items-center gap-3">
+          <Phone className="h-5 w-5 text-primary" />
+          <div>
+            <p className="text-xs text-muted-foreground font-semibold">Phone Number</p>
+            <p className="font-bold">{customer.phoneNumber || "Not provided"}</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
+          <Mail className="h-5 w-5 text-primary" />
+          <div>
+            <p className="text-xs text-muted-foreground font-semibold">Email Address</p>
+            <p className="font-bold">{customer.email}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 /**
  * A standalone component for the Quote Dialog content
@@ -187,6 +232,23 @@ function JobCard({ job, isAvailable, user, profile, onStatusUpdate, onCompleteJo
           {job.refinedDescription || job.description}
         </p>
         <div className="grid gap-1 border-t pt-3 mt-auto">
+          {!isAvailable && (
+            <div className="mb-2">
+              <Dialog>
+                <DialogTrigger asChild>
+                  <button className="flex items-center gap-2 text-primary font-bold text-sm hover:underline">
+                    <User className="h-4 w-4" /> View Customer: {job.customerName}
+                  </button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Customer Contact Details</DialogTitle>
+                  </DialogHeader>
+                  <CustomerProfileView customerId={job.customerId} />
+                </DialogContent>
+              </Dialog>
+            </div>
+          )}
           <div className="flex items-center text-sm font-medium gap-1">
             <MapPin className="h-4 w-4 text-primary shrink-0" /> 
             <span>{job.areaCityPincode}</span>

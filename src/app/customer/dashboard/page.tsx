@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useUser, useFirestore, useCollection, useDoc, useMemoFirebase } from "@/firebase";
@@ -24,7 +25,10 @@ import {
   DollarSign,
   Trash2,
   CheckCircle2,
-  Circle
+  Circle,
+  Phone,
+  Mail,
+  Info
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
@@ -114,6 +118,57 @@ export default function CustomerDashboard() {
             <Button size="sm" onClick={() => handleSelectQuote(jobId, quote)}>Select This Quote</Button>
           </div>
         ))}
+      </div>
+    );
+  };
+
+  const ProviderProfileView = ({ workerId }: { workerId: string }) => {
+    const wRef = useMemoFirebase(() => doc(db, 'users', workerId), [workerId]);
+    const { data: provider, isLoading } = useDoc(wRef);
+
+    if (isLoading) return <Loader2 className="h-4 w-4 animate-spin mx-auto" />;
+    if (!provider) return <p>Expert profile not found.</p>;
+
+    return (
+      <div className="space-y-6 py-4">
+        <div className="flex flex-col items-center text-center space-y-4">
+          <Avatar className="h-24 w-24 border-4 border-primary/20">
+            <AvatarImage src={`https://picsum.photos/seed/${workerId}/200`} />
+            <AvatarFallback>{provider.firstName?.charAt(0)}</AvatarFallback>
+          </Avatar>
+          <div>
+            <h3 className="text-2xl font-bold">{provider.firstName} {provider.lastName}</h3>
+            <Badge variant="secondary" className="mt-1">Verified Expert</Badge>
+          </div>
+        </div>
+
+        <div className="grid gap-4">
+          <Card className="bg-slate-50 border-none">
+            <CardContent className="p-4 space-y-3">
+              <div className="flex items-center gap-3 text-sm">
+                <Phone className="h-4 w-4 text-primary" />
+                <span className="font-medium">{provider.phoneNumber || "Not provided"}</span>
+              </div>
+              <div className="flex items-center gap-3 text-sm">
+                <Mail className="h-4 w-4 text-primary" />
+                <span className="font-medium">{provider.email}</span>
+              </div>
+              <div className="flex items-center gap-3 text-sm">
+                <MapPin className="h-4 w-4 text-primary" />
+                <span className="font-medium">{provider.city}, {provider.state}</span>
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="space-y-2">
+            <h4 className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+              <Info className="h-4 w-4" /> About Provider
+            </h4>
+            <p className="text-sm text-slate-600 leading-relaxed italic">
+              {provider.bio || "No professional bio provided yet."}
+            </p>
+          </div>
+        </div>
       </div>
     );
   };
@@ -247,9 +302,21 @@ export default function CustomerDashboard() {
                     <MapPin className="h-3 w-3" /> {job.areaCityPincode}
                   </div>
                   {job.workerName && (
-                    <div className="pt-3 border-t flex items-center gap-2">
-                      <Hammer className="h-4 w-4 text-secondary" />
-                      <div className="text-sm">Provider: <span className="font-bold">{job.workerName}</span></div>
+                    <div className="pt-3 border-t">
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <button className="flex items-center gap-2 hover:bg-slate-50 p-2 rounded-lg transition-colors w-full">
+                            <Hammer className="h-4 w-4 text-secondary" />
+                            <div className="text-sm text-left">Provider: <span className="font-bold text-primary hover:underline">{job.workerName}</span></div>
+                          </button>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>Service Provider Profile</DialogTitle>
+                          </DialogHeader>
+                          <ProviderProfileView workerId={job.workerId} />
+                        </DialogContent>
+                      </Dialog>
                     </div>
                   )}
                 </CardContent>

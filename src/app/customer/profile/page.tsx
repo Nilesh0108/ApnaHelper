@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useUser, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { doc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { toast } from "@/hooks/use-toast";
-import { Mail, Save, ArrowLeft, MapPin, Loader2 } from "lucide-react";
+import { Mail, Save, ArrowLeft, MapPin, Loader2, Phone } from "lucide-react";
 
 const STATES = [
   "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat", "Haryana", 
@@ -35,6 +35,7 @@ export default function CustomerProfile() {
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [apartment, setApartment] = useState("");
   const [landmark, setLandmark] = useState("");
   const [city, setCity] = useState("");
@@ -45,6 +46,7 @@ export default function CustomerProfile() {
     if (profile) {
       setFirstName(profile.firstName || "");
       setLastName(profile.lastName || "");
+      setPhoneNumber(profile.phoneNumber || "");
       setApartment(profile.apartment || "");
       setLandmark(profile.landmark || "");
       setCity(profile.city || "");
@@ -59,6 +61,7 @@ export default function CustomerProfile() {
       await updateDoc(userDocRef, {
         firstName,
         lastName,
+        phoneNumber,
         apartment,
         landmark,
         city,
@@ -129,12 +132,23 @@ export default function CustomerProfile() {
               </div>
             </div>
             <div className="space-y-2">
+              <Label htmlFor="phone">Phone Number</Label>
+              <div className="relative">
+                <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input 
+                  id="phone" 
+                  value={phoneNumber} 
+                  onChange={(e) => setPhoneNumber(e.target.value)} 
+                  className="pl-10"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
               <Label htmlFor="email">Email Address</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input id="email" value={user.email || ""} disabled className="pl-10 bg-slate-50 cursor-not-allowed" />
               </div>
-              <p className="text-[10px] text-muted-foreground">Email cannot be changed after registration.</p>
             </div>
           </CardContent>
         </Card>

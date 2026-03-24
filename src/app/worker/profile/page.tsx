@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useUser, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { doc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { toast } from "@/hooks/use-toast";
-import { Mail, Save, ArrowLeft, MapPin, Loader2, Briefcase } from "lucide-react";
+import { Mail, Save, ArrowLeft, MapPin, Loader2, Briefcase, Phone } from "lucide-react";
 
 const STATES = [
   "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat", "Haryana", 
@@ -36,6 +36,7 @@ export default function WorkerProfile() {
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [bio, setBio] = useState("");
   const [apartment, setApartment] = useState("");
   const [landmark, setLandmark] = useState("");
@@ -47,6 +48,7 @@ export default function WorkerProfile() {
     if (profile) {
       setFirstName(profile.firstName || "");
       setLastName(profile.lastName || "");
+      setPhoneNumber(profile.phoneNumber || "");
       setBio(profile.bio || "");
       setApartment(profile.apartment || "");
       setLandmark(profile.landmark || "");
@@ -62,6 +64,7 @@ export default function WorkerProfile() {
       await updateDoc(userDocRef, {
         firstName,
         lastName,
+        phoneNumber,
         bio,
         apartment,
         landmark,
@@ -131,6 +134,18 @@ export default function WorkerProfile() {
                   id="lastName" 
                   value={lastName} 
                   onChange={(e) => setLastName(e.target.value)} 
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="phone">Contact Phone</Label>
+              <div className="relative">
+                <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input 
+                  id="phone" 
+                  value={phoneNumber} 
+                  onChange={(e) => setPhoneNumber(e.target.value)} 
+                  className="pl-10"
                 />
               </div>
             </div>
