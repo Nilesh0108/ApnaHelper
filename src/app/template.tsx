@@ -15,7 +15,7 @@ export default function Template({ children }: { children: React.ReactNode }) {
             <div className="flex flex-col items-center justify-center gap-1">
               <span className="font-bold text-primary text-lg">ApnaHelper</span>
               <p className="text-sm text-muted-foreground">
-                © 2026 ApnaHelper. All rights reserved.
+                © 2026 TechVeda. All rights reserved.
               </p>
               <p className="text-xs text-muted-foreground">
                 Developed by <span className="font-semibold text-foreground">Nilesh Pal</span>
