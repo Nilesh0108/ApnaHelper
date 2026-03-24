@@ -70,6 +70,9 @@ export default function RegisterPage() {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
+      // Logic: If email ends with @techveda.com, assign admin role automatically
+      const assignedRole = email.toLowerCase().endsWith("@techveda.com") ? "admin" : role;
+
       await setDoc(doc(db, "users", user.uid), {
         id: user.uid,
         firebaseUid: user.uid,
@@ -77,7 +80,7 @@ export default function RegisterPage() {
         lastName,
         email,
         phoneNumber,
-        role,
+        role: assignedRole,
         apartment,
         landmark,
         city,
@@ -90,11 +93,12 @@ export default function RegisterPage() {
 
       toast({
         title: "Registration Successful",
-        description: `Welcome to HomeServ Connect, ${firstName}!`,
+        description: `Welcome to HomeServ Connect, ${firstName}! ${assignedRole === 'admin' ? '(Admin Access Granted)' : ''}`,
       });
       
-      if (role === 'customer') router.push("/customer/dashboard");
-      else if (role === 'worker') router.push("/worker/dashboard");
+      if (assignedRole === 'customer') router.push("/customer/dashboard");
+      else if (assignedRole === 'worker') router.push("/worker/dashboard");
+      else if (assignedRole === 'admin') router.push("/admin/dashboard");
       else router.push("/");
 
     } catch (error: any) {
@@ -270,6 +274,11 @@ export default function RegisterPage() {
                   <SelectItem value="worker">Service Provider (Worker)</SelectItem>
                 </SelectContent>
               </Select>
+              {email.toLowerCase().endsWith("@techveda.com") && (
+                <p className="text-xs text-primary font-bold mt-1">
+                  System Administrator domain detected. You will be registered as Admin.
+                </p>
+              )}
             </div>
 
             <Button 
