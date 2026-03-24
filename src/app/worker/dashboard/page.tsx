@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -16,9 +15,6 @@ import { collection, query, doc, updateDoc, serverTimestamp, addDoc, where } fro
 import { toast } from "@/hooks/use-toast";
 import { MapPin, Clock, Hammer, CheckCircle2, AlertCircle, Loader2, DollarSign, Send, Star, User, Phone, Mail } from "lucide-react";
 
-/**
- * Dialog for Worker to view Customer contact info
- */
 function CustomerProfileView({ customerId }: { customerId: string }) {
   const db = useFirestore();
   const cRef = useMemoFirebase(() => doc(db, 'users', customerId), [customerId]);
@@ -40,7 +36,7 @@ function CustomerProfileView({ customerId }: { customerId: string }) {
         </div>
       </div>
 
-      <div className="bg-primary/5 rounded-xl p-6 space-y-4">
+      <div className="bg-muted/50 rounded-xl p-6 space-y-4">
         <div className="flex items-center gap-3">
           <Phone className="h-5 w-5 text-primary" />
           <div>
@@ -60,9 +56,6 @@ function CustomerProfileView({ customerId }: { customerId: string }) {
   );
 }
 
-/**
- * A standalone component for the Quote Dialog content
- */
 function QuoteDialog({ job, user, profile }: { job: any; user: any; profile: any }) {
   const db = useFirestore();
   const [open, setOpen] = useState(false);
@@ -148,9 +141,6 @@ function QuoteDialog({ job, user, profile }: { job: any; user: any; profile: any
   );
 }
 
-/**
- * Dialog to allow Worker to rate the Customer upon job completion
- */
 function CompleteJobDialog({ job, onComplete }: { job: any; onComplete: (rating: number, feedback: string) => void }) {
   const [open, setOpen] = useState(false);
   const [rating, setRating] = useState(5);
@@ -159,7 +149,7 @@ function CompleteJobDialog({ job, onComplete }: { job: any; onComplete: (rating:
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="w-full bg-green-600 hover:bg-green-700">Complete Job</Button>
+        <Button className="w-full bg-green-600 hover:bg-green-700 text-white">Complete Job</Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
@@ -172,7 +162,7 @@ function CompleteJobDialog({ job, onComplete }: { job: any; onComplete: (rating:
               {[1, 2, 3, 4, 5].map((s) => (
                 <Star
                   key={s}
-                  className={`h-8 w-8 cursor-pointer transition-colors ${s <= rating ? 'fill-yellow-400 text-yellow-400' : 'text-slate-300'}`}
+                  className={`h-8 w-8 cursor-pointer transition-colors ${s <= rating ? 'fill-yellow-400 text-yellow-400' : 'text-muted'}`}
                   onClick={() => setRating(s)}
                 />
               ))}
@@ -202,9 +192,6 @@ function CompleteJobDialog({ job, onComplete }: { job: any; onComplete: (rating:
   );
 }
 
-/**
- * Independent JobCard component
- */
 function JobCard({ job, isAvailable, user, profile, onStatusUpdate, onCompleteJob }: { 
   job: any; 
   isAvailable: boolean; 
@@ -214,7 +201,7 @@ function JobCard({ job, isAvailable, user, profile, onStatusUpdate, onCompleteJo
   onCompleteJob: (id: string, rating: number, feedback: string) => void;
 }) {
   return (
-    <Card className="hover:shadow-md transition-shadow overflow-hidden border-t-4 border-t-primary h-full flex flex-col">
+    <Card className="hover:shadow-md transition-shadow overflow-hidden border-t-4 border-t-primary h-full flex flex-col bg-card">
       <CardHeader className="flex flex-row items-start justify-between pb-2">
         <div className="space-y-1">
           <CardTitle className="text-lg">{job.serviceType}</CardTitle>
@@ -256,7 +243,7 @@ function JobCard({ job, isAvailable, user, profile, onStatusUpdate, onCompleteJo
           <p className="text-xs text-muted-foreground pl-5">{job.apartment}, {job.landmark}</p>
         </div>
       </CardContent>
-      <CardFooter className="flex flex-col gap-2 bg-slate-50/50 pt-4">
+      <CardFooter className="flex flex-col gap-2 bg-muted/30 pt-4">
         {isAvailable ? (
           <QuoteDialog job={job} user={user} profile={profile} />
         ) : (
@@ -273,11 +260,11 @@ function JobCard({ job, isAvailable, user, profile, onStatusUpdate, onCompleteJo
                   <CheckCircle2 className="h-4 w-4" /> COMPLETED
                 </div>
                 {job.workerRating && (
-                  <div className="flex items-center justify-center gap-1 bg-white p-2 rounded-lg border text-xs">
+                  <div className="flex items-center justify-center gap-1 bg-card p-2 rounded-lg border text-xs">
                     <span className="text-muted-foreground">My Rating:</span>
                     <div className="flex">
                       {[1, 2, 3, 4, 5].map(s => (
-                        <Star key={s} className={`h-3 w-3 ${s <= job.workerRating ? 'fill-yellow-400 text-yellow-400' : 'text-slate-200'}`} />
+                        <Star key={s} className={`h-3 w-3 ${s <= job.workerRating ? 'fill-yellow-400 text-yellow-400' : 'text-muted'}`} />
                       ))}
                     </div>
                   </div>
@@ -359,7 +346,7 @@ export default function WorkerDashboard() {
 
   return (
     <div className="container mx-auto py-10 px-4 space-y-8">
-      <div className="bg-white rounded-3xl p-8 shadow-sm border border-secondary/10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+      <div className="bg-card rounded-3xl p-8 shadow-sm border border-secondary/10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div className="space-y-2">
           <h1 className="text-4xl font-extrabold tracking-tight">Worker Dashboard</h1>
           <p className="text-muted-foreground text-lg">
@@ -369,18 +356,18 @@ export default function WorkerDashboard() {
       </div>
 
       <Tabs defaultValue="available" className="w-full">
-        <TabsList className="grid w-full max-w-md grid-cols-2 mb-8 h-12 p-1 bg-slate-100">
-          <TabsTrigger value="available" className="text-base data-[state=active]:bg-white">
+        <TabsList className="grid w-full max-w-md grid-cols-2 mb-8 h-12 p-1 bg-muted">
+          <TabsTrigger value="available" className="text-base data-[state=active]:bg-card">
             Nearby Jobs ({availableJobs?.length || 0})
           </TabsTrigger>
-          <TabsTrigger value="my-jobs" className="text-base data-[state=active]:bg-white">
+          <TabsTrigger value="my-jobs" className="text-base data-[state=active]:bg-card">
             My Assignments ({myJobs?.length || 0})
           </TabsTrigger>
         </TabsList>
         
         <TabsContent value="available" className="space-y-6">
           {!availableJobs || availableJobs.length === 0 ? (
-            <div className="py-20 text-center bg-white rounded-3xl border-2 border-dashed">
+            <div className="py-20 text-center bg-card rounded-3xl border-2 border-dashed">
               <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-xl font-bold">No nearby jobs in {profile?.state}</h3>
               <p className="text-muted-foreground">Keep checking for new requests in your area.</p>
@@ -404,7 +391,7 @@ export default function WorkerDashboard() {
         
         <TabsContent value="my-jobs" className="space-y-6">
           {!myJobs || myJobs.length === 0 ? (
-            <div className="py-20 text-center bg-white rounded-3xl border-2 border-dashed">
+            <div className="py-20 text-center bg-card rounded-3xl border-2 border-dashed">
               <Hammer className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-xl font-bold">No assignments yet</h3>
               <p className="text-muted-foreground">Submit quotes to win new jobs!</p>

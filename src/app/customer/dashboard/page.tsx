@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useMemo } from "react";
@@ -54,8 +53,6 @@ export default function CustomerDashboard() {
 
   const sortedJobs = useMemo(() => {
     if (!rawJobs) return null;
-    // Filter out jobs that would appear in history instead if they are completed, 
-    // though the dashboard can show them, typically we show active ones here.
     return [...rawJobs].sort((a: any, b: any) => {
       const timeA = a.createdAt?.seconds || 0;
       const timeB = b.createdAt?.seconds || 0;
@@ -110,11 +107,11 @@ export default function CustomerDashboard() {
     return (
       <div className="space-y-4 py-4">
         {quotes.map((quote: any) => (
-          <div key={quote.id} className="p-4 border rounded-xl flex items-center justify-between hover:bg-slate-50 transition-colors">
+          <div key={quote.id} className="p-4 border rounded-xl flex items-center justify-between hover:bg-muted/50 transition-colors">
             <div className="space-y-1">
               <div className="font-bold flex items-center gap-2">
                 {quote.workerName}
-                <Badge variant="outline" className="bg-green-50 text-green-700">₹{quote.price}</Badge>
+                <Badge variant="outline" className="bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400">₹{quote.price}</Badge>
               </div>
               <p className="text-sm text-muted-foreground">{quote.message || 'Professional service at best price.'}</p>
             </div>
@@ -146,7 +143,7 @@ export default function CustomerDashboard() {
         </div>
 
         <div className="grid gap-4">
-          <Card className="bg-slate-50 border-none">
+          <Card className="bg-muted/50 border-none">
             <CardContent className="p-4 space-y-3">
               <div className="flex items-center gap-3 text-sm">
                 <Phone className="h-4 w-4 text-primary" />
@@ -165,9 +162,9 @@ export default function CustomerDashboard() {
 
           <div className="space-y-2">
             <h4 className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-              <Info className="h-4 w-4" /> About Provider
+              <Hammer className="h-4 w-4" /> About Provider
             </h4>
-            <p className="text-sm text-slate-600 leading-relaxed italic">
+            <p className="text-sm text-muted-foreground leading-relaxed italic">
               {provider.bio || "No professional bio provided yet."}
             </p>
           </div>
@@ -195,9 +192,9 @@ export default function CustomerDashboard() {
           return (
             <div key={step.id} className="flex gap-4 items-start relative">
               {idx !== steps.length - 1 && (
-                <div className={`absolute left-3 top-6 w-[2px] h-10 ${idx < currentIdx ? 'bg-primary' : 'bg-slate-200'}`} />
+                <div className={`absolute left-3 top-6 w-[2px] h-10 ${idx < currentIdx ? 'bg-primary' : 'bg-muted'}`} />
               )}
-              <div className={`mt-1 z-10 p-1 rounded-full ${isDone ? 'bg-primary text-white' : 'bg-slate-100 text-slate-300'}`}>
+              <div className={`mt-1 z-10 p-1 rounded-full ${isDone ? 'bg-primary text-white' : 'bg-muted text-muted-foreground/30'}`}>
                 {isDone ? <CheckCircle2 className="h-4 w-4" /> : <Circle className="h-4 w-4" />}
               </div>
               <div className="space-y-1">
@@ -217,7 +214,7 @@ export default function CustomerDashboard() {
 
   return (
     <div className="container mx-auto py-10 px-4 space-y-10">
-      <div className="bg-white rounded-3xl p-8 shadow-sm border border-primary/10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+      <div className="bg-card rounded-3xl p-8 shadow-sm border border-primary/10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div className="space-y-2">
           <h1 className="text-4xl font-extrabold tracking-tight">
             Welcome, <span className="text-primary">{profile?.firstName || 'Guest'}</span>!
@@ -236,11 +233,11 @@ export default function CustomerDashboard() {
         {[
           { icon: Sparkles, label: 'Book Service', href: '/customer/request', color: 'bg-primary/10 text-primary' },
           { icon: History, label: 'Order History', href: '/customer/history', color: 'bg-secondary/10 text-secondary' },
-          { icon: UserCircle, label: 'My Profile', href: '/customer/profile', color: 'bg-orange-50 text-orange-600' },
-          { icon: HelpCircle, label: 'Get Support', href: '/customer/support', color: 'bg-slate-100 text-slate-800' }
+          { icon: UserCircle, label: 'My Profile', href: '/customer/profile', color: 'bg-orange-500/10 text-orange-600' },
+          { icon: HelpCircle, label: 'Get Support', href: '/customer/support', color: 'bg-muted text-muted-foreground' }
         ].map((action, idx) => (
           <Link key={idx} href={action.href}>
-            <Card className="hover:border-primary/50 transition-colors cursor-pointer group h-full">
+            <Card className="hover:border-primary/50 transition-colors cursor-pointer group h-full bg-card">
               <CardContent className="p-6 flex flex-col items-center text-center space-y-3">
                 <div className={`${action.color} p-4 rounded-2xl group-hover:scale-110 transition-transform`}>
                   <action.icon className="h-6 w-6" />
@@ -256,10 +253,10 @@ export default function CustomerDashboard() {
         <h2 className="text-2xl font-bold">My Active Requests</h2>
         {isJobsLoading ? (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[1, 2, 3].map(i => <Card key={i} className="animate-pulse bg-slate-50 h-48" />)}
+            {[1, 2, 3].map(i => <Card key={i} className="animate-pulse bg-muted h-48" />)}
           </div>
         ) : !sortedJobs || sortedJobs.length === 0 ? (
-          <div className="py-20 text-center bg-white rounded-3xl border-2 border-dashed">
+          <div className="py-20 text-center bg-card rounded-3xl border-2 border-dashed">
             <Clock className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
             <h3 className="text-2xl font-bold">No requests yet</h3>
             <p className="text-muted-foreground">Start by creating your first one!</p>
@@ -267,7 +264,7 @@ export default function CustomerDashboard() {
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {sortedJobs.map((job: any) => (
-              <Card key={job.id} className="hover:shadow-xl transition-all duration-300 border-t-4 border-t-primary relative">
+              <Card key={job.id} className="hover:shadow-xl transition-all duration-300 border-t-4 border-t-primary relative bg-card">
                 <div className="absolute top-4 right-4">
                   {job.status !== 'COMPLETED' && (
                     <AlertDialog>
@@ -287,7 +284,7 @@ export default function CustomerDashboard() {
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                           <AlertDialogCancel>Keep Request</AlertDialogCancel>
-                          <AlertDialogAction className="bg-destructive hover:bg-destructive/90" onClick={() => handleDeleteJob(job.id)}>
+                          <AlertDialogAction className="bg-destructive hover:bg-destructive/90 text-white" onClick={() => handleDeleteJob(job.id)}>
                             Delete Permanently
                           </AlertDialogAction>
                         </AlertDialogFooter>
@@ -298,7 +295,7 @@ export default function CustomerDashboard() {
                 <CardHeader className="flex flex-row items-start justify-between">
                   <div className="space-y-1">
                     <CardTitle className="text-xl font-bold">{job.serviceType}</CardTitle>
-                    <Badge variant="outline" className="bg-blue-50 text-blue-700">{job.status}</Badge>
+                    <Badge variant="outline" className="bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">{job.status}</Badge>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -310,7 +307,7 @@ export default function CustomerDashboard() {
                     <div className="pt-3 border-t">
                       <Dialog>
                         <DialogTrigger asChild>
-                          <button className="flex items-center gap-2 hover:bg-slate-50 p-2 rounded-lg transition-colors w-full">
+                          <button className="flex items-center gap-2 hover:bg-muted/50 p-2 rounded-lg transition-colors w-full">
                             <Hammer className="h-4 w-4 text-secondary" />
                             <div className="text-sm text-left">Provider: <span className="font-bold text-primary hover:underline">{job.workerName}</span></div>
                           </button>
@@ -325,7 +322,7 @@ export default function CustomerDashboard() {
                     </div>
                   )}
                 </CardContent>
-                <CardFooter className="bg-slate-50/50 pt-4">
+                <CardFooter className="bg-muted/30 pt-4">
                   {job.status === 'PENDING' ? (
                     <Dialog>
                       <DialogTrigger asChild>
