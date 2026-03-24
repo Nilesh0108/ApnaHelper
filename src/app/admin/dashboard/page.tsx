@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
 import { collection, doc, updateDoc, query, orderBy, limit, serverTimestamp } from "firebase/firestore";
-import { Users, Briefcase, CheckCircle2, Ban, BarChart3, Loader2, ShieldCheck, MessageSquare, Clock, CheckCircle } from "lucide-react";
+import { Users, Briefcase, CheckCircle2, Ban, BarChart3, Loader2, ShieldCheck, MessageSquare, Clock, CheckCircle, User, Hammer } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
 export default function AdminDashboard() {
@@ -67,10 +67,12 @@ export default function AdminDashboard() {
   };
 
   const stats = useMemo(() => {
-    if (!allUsers || !allJobs) return { totalUsers: 0, totalJobs: 0, activeJobs: 0, completedJobs: 0 };
+    if (!allUsers || !allJobs) return { totalUsers: 0, totalCustomers: 0, totalWorkers: 0, totalJobs: 0, activeJobs: 0, completedJobs: 0 };
     
     return {
       totalUsers: allUsers.length,
+      totalCustomers: allUsers.filter(u => u.role === 'customer').length,
+      totalWorkers: allUsers.filter(u => u.role === 'worker').length,
       totalJobs: allJobs.length,
       activeJobs: allJobs.filter(j => j.status === 'ACCEPTED' || j.status === 'IN_PROGRESS').length,
       completedJobs: allJobs.filter(j => j.status === 'COMPLETED').length,
@@ -93,14 +95,32 @@ export default function AdminDashboard() {
         <p className="text-muted-foreground">Live monitoring of users and service activities across ApnaHelper.</p>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 md:gap-6">
         <Card className="bg-card border-l-4 border-l-primary shadow-sm">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <Users className="h-5 w-5 text-primary" />
               <div className="text-2xl font-bold">{stats.totalUsers}</div>
             </div>
-            <div className="text-sm text-muted-foreground mt-2">Registered Users</div>
+            <div className="text-sm text-muted-foreground mt-2">Total Users</div>
+          </CardContent>
+        </Card>
+        <Card className="bg-card border-l-4 border-l-blue-400 shadow-sm">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <User className="h-5 w-5 text-blue-400" />
+              <div className="text-2xl font-bold">{stats.totalCustomers}</div>
+            </div>
+            <div className="text-sm text-muted-foreground mt-2">Total Customers</div>
+          </CardContent>
+        </Card>
+        <Card className="bg-card border-l-4 border-l-indigo-500 shadow-sm">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <Hammer className="h-5 w-5 text-indigo-500" />
+              <div className="text-2xl font-bold">{stats.totalWorkers}</div>
+            </div>
+            <div className="text-sm text-muted-foreground mt-2">Professionals</div>
           </CardContent>
         </Card>
         <Card className="bg-card border-l-4 border-l-secondary shadow-sm">
@@ -109,7 +129,7 @@ export default function AdminDashboard() {
               <Briefcase className="h-5 w-5 text-secondary" />
               <div className="text-2xl font-bold">{stats.totalJobs}</div>
             </div>
-            <div className="text-sm text-muted-foreground mt-2">Total Service Requests</div>
+            <div className="text-sm text-muted-foreground mt-2">Job Requests</div>
           </CardContent>
         </Card>
         <Card className="bg-card border-l-4 border-l-orange-500 shadow-sm">
@@ -127,7 +147,7 @@ export default function AdminDashboard() {
               <CheckCircle2 className="h-5 w-5 text-green-500" />
               <div className="text-2xl font-bold">{stats.completedJobs}</div>
             </div>
-            <div className="text-sm text-muted-foreground mt-2">Completed Tasks</div>
+            <div className="text-sm text-muted-foreground mt-2">Completed</div>
           </CardContent>
         </Card>
       </div>
