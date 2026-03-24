@@ -33,7 +33,7 @@ export default function RegisterPage() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
-  const [role, setRole] = useState<'customer' | 'worker' | 'admin'>("customer");
+  const [role, setRole] = useState<'customer' | 'worker'>("customer");
   
   // Address fields
   const [apartment, setApartment] = useState("");
@@ -95,7 +95,6 @@ export default function RegisterPage() {
       
       if (role === 'customer') router.push("/customer/dashboard");
       else if (role === 'worker') router.push("/worker/dashboard");
-      else if (role === 'admin') router.push("/admin/dashboard");
       else router.push("/");
 
     } catch (error: any) {
@@ -269,7 +268,6 @@ export default function RegisterPage() {
                 <SelectContent>
                   <SelectItem value="customer">User (Customer)</SelectItem>
                   <SelectItem value="worker">Service Provider (Worker)</SelectItem>
-                  <SelectItem value="admin">System Administrator</SelectItem>
                 </SelectContent>
               </Select>
             </div>
