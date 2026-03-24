@@ -33,7 +33,7 @@ export default function RegisterPage() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
-  const [role, setRole] = useState<'customer' | 'worker'>("customer");
+  const [role, setRole] = useState<'customer' | 'worker' | 'admin'>("customer");
   
   // Address fields
   const [apartment, setApartment] = useState("");
@@ -95,6 +95,7 @@ export default function RegisterPage() {
       
       if (role === 'customer') router.push("/customer/dashboard");
       else if (role === 'worker') router.push("/worker/dashboard");
+      else if (role === 'admin') router.push("/admin/dashboard");
       else router.push("/");
 
     } catch (error: any) {
@@ -261,13 +262,14 @@ export default function RegisterPage() {
 
             <div className="space-y-2 border-t pt-4">
               <Label htmlFor="role">Register as...</Label>
-              <Select onValueChange={(value) => setRole(value as 'customer' | 'worker')} defaultValue="customer">
+              <Select onValueChange={(value) => setRole(value as any)} defaultValue="customer">
                 <SelectTrigger id="role">
                   <SelectValue placeholder="Select your account type" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="customer">User (Customer)</SelectItem>
                   <SelectItem value="worker">Service Provider (Worker)</SelectItem>
+                  <SelectItem value="admin">System Administrator</SelectItem>
                 </SelectContent>
               </Select>
             </div>
