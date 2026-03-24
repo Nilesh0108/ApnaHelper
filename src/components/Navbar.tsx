@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -16,6 +17,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ModeToggle } from "@/components/mode-toggle";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -43,11 +45,11 @@ export default function Navbar() {
   };
 
   if (isUserLoading) return (
-    <nav className="bg-white border-b sticky top-0 z-50 h-16 flex items-center">
+    <nav className="bg-background border-b sticky top-0 z-50 h-16 flex items-center">
       <div className="container mx-auto px-4 flex justify-between items-center">
         <div className="flex items-center gap-2">
           <div className="bg-primary/20 p-2 rounded-lg w-9 h-9 animate-pulse" />
-          <div className="h-6 w-32 bg-slate-100 rounded animate-pulse" />
+          <div className="h-6 w-32 bg-muted rounded animate-pulse" />
         </div>
       </div>
     </nav>
@@ -111,11 +113,11 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="bg-white border-b sticky top-0 z-50">
+    <nav className="bg-background border-b sticky top-0 z-50">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2">
           <div className="bg-primary p-2 rounded-lg">
-            <Home className="text-white h-5 w-5" />
+            <Home className="text-primary-foreground h-5 w-5" />
           </div>
           <span className="font-bold text-xl text-primary hidden sm:block">
             HomeServ <span className="text-secondary">Connect</span>
@@ -125,6 +127,8 @@ export default function Navbar() {
         <div className="flex items-center gap-4">
           <NavLinks />
           
+          <ModeToggle />
+
           {user ? (
             <>
               <div className="h-8 w-px bg-border mx-2 hidden sm:block" />
