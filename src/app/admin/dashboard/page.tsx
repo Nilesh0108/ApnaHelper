@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
 import { collection, doc, updateDoc, query, orderBy, limit, serverTimestamp } from "firebase/firestore";
-import { Users, Briefcase, CheckCircle2, Ban, BarChart3, Loader2, ShieldCheck } from "lucide-react";
+import { Users, Briefcase, CheckCircle2, Ban, BarChart3, Loader2, ShieldCheck, MessageSquare, Clock, CheckCircle } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
 export default function AdminDashboard() {
@@ -19,10 +19,14 @@ export default function AdminDashboard() {
   const recentJobsQuery = useMemoFirebase(() => 
     query(collection(db, "service_requests"), orderBy("createdAt", "desc"), limit(5)), 
   [db]);
+  const reportsQuery = useMemoFirebase(() => 
+    query(collection(db, "reports"), orderBy("createdAt", "desc"), limit(5)),
+  [db]);
 
   const { data: allUsers, isLoading: isUsersLoading } = useCollection(usersQuery);
   const { data: allJobs, isLoading: isJobsLoading } = useCollection(jobsQuery);
   const { data: recentJobs, isLoading: isRecentLoading } = useCollection(recentJobsQuery);
+  const { data: reports, isLoading: isReportsLoading } = useCollection(reportsQuery);
 
   const handleUpdateUserStatus = async (userId: string, newStatus: string) => {
     try {
@@ -38,6 +42,25 @@ export default function AdminDashboard() {
       toast({
         variant: "destructive",
         title: "Operation Failed",
+        description: e.message,
+      });
+    }
+  };
+
+  const handleUpdateReportStatus = async (reportId: string, newStatus: string) => {
+    try {
+      await updateDoc(doc(db, "reports", reportId), {
+        status: newStatus,
+        updatedAt: serverTimestamp()
+      });
+      toast({
+        title: "Query Updated",
+        description: `Query status marked as ${newStatus}.`,
+      });
+    } catch (e: any) {
+      toast({
+        variant: "destructive",
+        title: "Update Failed",
         description: e.message,
       });
     }
@@ -67,7 +90,7 @@ export default function AdminDashboard() {
     <div className="container mx-auto py-10 px-4 space-y-8">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">System Analytics</h1>
-        <p className="text-muted-foreground">Live monitoring of users and service activities across TechVeda.</p>
+        <p className="text-muted-foreground">Live monitoring of users and service activities across ApnaHelper.</p>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
@@ -109,8 +132,8 @@ export default function AdminDashboard() {
         </Card>
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-8">
-        <Card>
+      <div className="grid lg:grid-cols-3 gap-8">
+        <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle>User Management</CardTitle>
             <CardDescription>Verify accounts or restrict access for platform safety.</CardDescription>
@@ -171,38 +194,95 @@ export default function AdminDashboard() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Job Activity</CardTitle>
-            <CardDescription>Live feed of latest 5 service requests.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {isRecentLoading ? (
-                <div className="flex justify-center py-10"><Loader2 className="animate-spin text-muted-foreground" /></div>
-              ) : !recentJobs || recentJobs.length === 0 ? (
-                <p className="text-center text-sm text-muted-foreground py-10">No job activity yet.</p>
-              ) : (
-                recentJobs.map(job => (
-                  <div key={job.id} className="flex items-center justify-between p-4 border rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors">
-                    <div className="space-y-1">
-                      <div className="font-bold text-sm text-primary">{job.serviceType}</div>
-                      <div className="text-[10px] text-muted-foreground">Customer: {job.customerName}</div>
+        <div className="space-y-8">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <MessageSquare className="h-5 w-5 text-primary" /> User Query Resolution
+              </CardTitle>
+              <CardDescription>Active support tickets from users.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {isReportsLoading ? (
+                  <Loader2 className="animate-spin h-4 w-4 mx-auto" />
+                ) : !reports || reports.length === 0 ? (
+                  <p className="text-center text-xs text-muted-foreground py-4">No active queries.</p>
+                ) : (
+                  reports.map(report => (
+                    <div key={report.id} className="p-3 border rounded-lg bg-muted/20 space-y-2">
+                      <div className="flex justify-between items-start">
+                        <h4 className="text-xs font-bold truncate pr-2">{report.subject}</h4>
+                        <Badge 
+                          variant={report.status === 'RESOLVED' ? 'default' : 'outline'} 
+                          className="text-[9px] h-4 px-1"
+                        >
+                          {report.status}
+                        </Badge>
+                      </div>
+                      <p className="text-[10px] text-muted-foreground line-clamp-2">{report.description}</p>
+                      <div className="flex justify-end gap-2 pt-1">
+                        {report.status !== 'RESOLVED' && (
+                          <>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="h-6 text-[9px]"
+                              onClick={() => handleUpdateReportStatus(report.id, 'IN_PROGRESS')}
+                            >
+                              <Clock className="h-3 w-3 mr-1" /> Progress
+                            </Button>
+                            <Button 
+                              variant="secondary" 
+                              size="sm" 
+                              className="h-6 text-[9px]"
+                              onClick={() => handleUpdateReportStatus(report.id, 'RESOLVED')}
+                            >
+                              <CheckCircle className="h-3 w-3 mr-1" /> Resolve
+                            </Button>
+                          </>
+                        )}
+                      </div>
                     </div>
-                    <div className="flex flex-col items-end gap-1">
-                      <Badge variant="secondary" className="text-[10px] px-2">
-                        {job.status}
-                      </Badge>
-                      <span className="text-[9px] text-muted-foreground">
-                        {job.createdAt?.seconds ? new Date(job.createdAt.seconds * 1000).toLocaleDateString() : 'New'}
-                      </span>
+                  ))
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Recent Job Activity</CardTitle>
+              <CardDescription>Latest service requests.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {isRecentLoading ? (
+                  <div className="flex justify-center py-4"><Loader2 className="animate-spin text-muted-foreground" /></div>
+                ) : !recentJobs || recentJobs.length === 0 ? (
+                  <p className="text-center text-xs text-muted-foreground py-4">No job activity yet.</p>
+                ) : (
+                  recentJobs.map(job => (
+                    <div key={job.id} className="flex items-center justify-between p-3 border rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors">
+                      <div className="space-y-1">
+                        <div className="font-bold text-xs text-primary">{job.serviceType}</div>
+                        <div className="text-[9px] text-muted-foreground">Customer: {job.customerName}</div>
+                      </div>
+                      <div className="flex flex-col items-end gap-1">
+                        <Badge variant="secondary" className="text-[9px] px-1 h-4">
+                          {job.status}
+                        </Badge>
+                        <span className="text-[8px] text-muted-foreground">
+                          {job.createdAt?.seconds ? new Date(job.createdAt.seconds * 1000).toLocaleDateString() : 'New'}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </CardContent>
-        </Card>
+                  ))
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
