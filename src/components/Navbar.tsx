@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth, useUser, useDoc, useMemoFirebase, useFirestore } from "@/firebase";
 import { signOut } from "firebase/auth";
 import { doc } from "firebase/firestore";
-import { LogOut, Home, History, PieChart, Wallet, User, Settings, History as HistoryIcon } from "lucide-react";
+import { LogOut, Home, History, PieChart, Wallet, User, History as HistoryIcon } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -155,10 +155,6 @@ export default function Navbar() {
                       <span>Profile</span>
                     </DropdownMenuItem>
                   </Link>
-                  <DropdownMenuItem className="cursor-pointer">
-                    <Settings className="mr-2 h-4 w-4" />
-                    <span>Settings</span>
-                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem className="text-destructive cursor-pointer" onClick={handleLogout}>
                     <LogOut className="mr-2 h-4 w-4" />
