@@ -2,6 +2,12 @@
 {
   "placeholderImages": [
     {
+      "id": "hero",
+      "description": "Professional home service worker",
+      "imageUrl": "https://picsum.photos/seed/professional-worker/800/600",
+      "imageHint": "professional worker"
+    },
+    {
       "id": "plumbing",
       "description": "Professional plumbing service",
       "imageUrl": "https://picsum.photos/seed/plumb/600/400",

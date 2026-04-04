@@ -10,6 +10,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { ShieldCheck, User, Hammer, LayoutDashboard, CheckCircle2, Loader2, Home as HomeIcon, Droplets, Zap, Wind, Eraser, PenTool, Drill } from 'lucide-react';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { doc } from "firebase/firestore";
+import placeholderData from '@/app/lib/placeholder-images.json';
 
 const POPULAR_SERVICES = [
   { name: 'Plumbing', icon: Droplets, color: 'text-blue-500', bg: 'bg-blue-50' },
@@ -25,6 +26,8 @@ export default function Home() {
   const { user, isUserLoading } = useUser();
   const db = useFirestore();
   const [showSplash, setShowSplash] = useState(true);
+
+  const heroImage = placeholderData.placeholderImages.find(img => img.id === 'hero');
 
   const userDocRef = useMemoFirebase(() => {
     if (!user) return null;
@@ -80,7 +83,7 @@ export default function Home() {
 
   if (isUserLoading || (user && isProfileLoading)) {
     return (
-      <div className="flex flex-col items-center justify-center min-screen bg-background">
+      <div className="flex flex-col items-center justify-center min-h-screen bg-background">
         <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
         <p className="text-muted-foreground font-medium">Securing your session...</p>
       </div>
@@ -122,14 +125,16 @@ export default function Home() {
             </div>
           </div>
           <div className="relative hidden lg:block">
-            <Image 
-              src="https://picsum.photos/seed/homeserv/800/600" 
-              alt="Home service professional" 
-              width={800} 
-              height={600}
-              className="rounded-3xl shadow-2xl"
-              data-ai-hint="home service"
-            />
+            {heroImage && (
+              <Image 
+                src={heroImage.imageUrl} 
+                alt={heroImage.description} 
+                width={800} 
+                height={600}
+                className="rounded-3xl shadow-2xl"
+                data-ai-hint={heroImage.imageHint}
+              />
+            )}
           </div>
         </div>
       </section>
