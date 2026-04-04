@@ -3,9 +3,9 @@
   "placeholderImages": [
     {
       "id": "hero",
-      "description": "Professional home service worker",
-      "imageUrl": "https://picsum.photos/seed/professional-worker/800/600",
-      "imageHint": "professional worker"
+      "description": "Scenic mountain landscape",
+      "imageUrl": "https://picsum.photos/seed/mountain/800/600",
+      "imageHint": "mountain landscape"
     },
     {
       "id": "plumbing",
