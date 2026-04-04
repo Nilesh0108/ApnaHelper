@@ -48,6 +48,13 @@ export default function Home() {
     }
   }, [user, profile, isUserLoading, isProfileLoading, router, showSplash]);
 
+  const scrollToServices = () => {
+    const element = document.getElementById('popular-services');
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   if (showSplash) {
     return (
       <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-background transition-opacity duration-500">
@@ -96,7 +103,14 @@ export default function Home() {
               <Link href="/login">
                 <Button size="lg" className="rounded-full px-8 text-lg">Get Started</Button>
               </Link>
-              <Button variant="outline" size="lg" className="rounded-full px-8 text-lg">Browse Services</Button>
+              <Button 
+                variant="outline" 
+                size="lg" 
+                className="rounded-full px-8 text-lg"
+                onClick={scrollToServices}
+              >
+                Browse Services
+              </Button>
             </div>
             <div className="flex items-center gap-6 pt-4 text-sm font-medium text-muted-foreground">
               <div className="flex items-center gap-2">
@@ -120,7 +134,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="py-24 bg-background">
+      <section id="popular-services" className="py-24 bg-background scroll-mt-20">
         <div className="container mx-auto px-4">
           <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
             <h2 className="text-3xl font-bold">Popular Services</h2>
