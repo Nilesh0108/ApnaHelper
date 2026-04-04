@@ -108,7 +108,7 @@ export default function Home() {
             </div>
             <div className="flex items-center gap-6 pt-4 text-sm font-medium text-muted-foreground">
               <div className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-secondary" /> 2k+ Certified Workers
+                <CheckCircle2 className="h-4 w-4 text-secondary" /> Connect Nearest Local Professional
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4 text-secondary" /> 24/7 Support
