@@ -13,8 +13,19 @@ import { useUser, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { collection, addDoc, serverTimestamp, doc } from "firebase/firestore";
 import { SERVICE_TYPES, STATES } from "@/lib/types";
 import { toast } from "@/hooks/use-toast";
-import { ArrowLeft, Send, Loader2, MapPin } from "lucide-react";
+import { ArrowLeft, Send, Loader2, MapPin, Droplets, Zap, Wind, Eraser, PenTool, Drill, HelpCircle } from "lucide-react";
 import AIJobAssistant from "@/components/AIJobAssistant";
+import { cn } from "@/lib/utils";
+
+const SERVICE_ICONS: Record<string, any> = {
+  'Plumbing': Droplets,
+  'Electrical': Zap,
+  'Fan Repair': Wind,
+  'Cleaning': Eraser,
+  'Carpentry': Drill,
+  'Painting': PenTool,
+  'Other': HelpCircle
+};
 
 export default function NewServiceRequest() {
   const router = useRouter();
@@ -35,7 +46,6 @@ export default function NewServiceRequest() {
   const [state, setState] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Auto-populate from profile
   useEffect(() => {
     if (profile) {
       setApartment(profile.apartment || "");
@@ -93,44 +103,59 @@ export default function NewServiceRequest() {
   if (!user) return null;
 
   return (
-    <div className="container max-w-2xl mx-auto py-10 px-4">
+    <div className="container max-w-3xl mx-auto py-10 px-4">
       <Button variant="ghost" onClick={() => router.back()} className="mb-6">
         <ArrowLeft className="mr-2 h-4 w-4" /> Back to Dashboard
       </Button>
 
-      <Card className="shadow-lg border-primary/10 overflow-hidden">
-        <div className="bg-primary/5 p-6 border-b">
-          <CardTitle className="text-2xl font-bold flex items-center gap-2">
-            <Send className="h-6 w-6 text-primary" /> Post New Request
-          </CardTitle>
-          <p className="text-muted-foreground text-sm mt-1">Get custom quotes from verified experts in your area.</p>
+      <div className="space-y-6">
+        <div className="space-y-2">
+          <h1 className="text-3xl font-extrabold tracking-tight">Post a New Request</h1>
+          <p className="text-muted-foreground">Tell us what you need, and verified pros will bid on your job.</p>
         </div>
-        <CardContent className="p-6">
-          <form onSubmit={handleSubmit} className="space-y-8">
-            <div className="space-y-6">
-              <h3 className="font-semibold text-lg flex items-center gap-2 border-b pb-2">
-                1. Service Details
-              </h3>
-              <div className="space-y-2">
-                <Label htmlFor="service-type">Service Type</Label>
-                <Select onValueChange={setServiceType} required value={serviceType}>
-                  <SelectTrigger id="service-type" className="h-12">
-                    <SelectValue placeholder="Select a service" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {SERVICE_TYPES.map(type => (
-                      <SelectItem key={type} value={type}>{type}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
 
+        <form onSubmit={handleSubmit} className="space-y-8">
+          <Card className="border-primary/10 shadow-md">
+            <CardHeader className="bg-muted/30">
+              <CardTitle className="text-lg">1. Choose Service Category</CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                {SERVICE_TYPES.map((type) => {
+                  const Icon = SERVICE_ICONS[type] || HelpCircle;
+                  const isSelected = serviceType === type;
+                  return (
+                    <button
+                      key={type}
+                      type="button"
+                      onClick={() => setServiceType(type)}
+                      className={cn(
+                        "flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all space-y-2",
+                        isSelected 
+                          ? "border-primary bg-primary/5 text-primary shadow-sm" 
+                          : "border-transparent bg-muted/20 hover:bg-muted/40 text-muted-foreground"
+                      )}
+                    >
+                      <Icon className={cn("h-6 w-6", isSelected ? "text-primary" : "text-muted-foreground")} />
+                      <span className="text-xs font-bold">{type}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-primary/10 shadow-md">
+            <CardHeader className="bg-muted/30">
+              <CardTitle className="text-lg">2. Describe the Problem</CardTitle>
+            </CardHeader>
+            <CardContent className="p-6 space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="description">Job Description</Label>
+                <Label htmlFor="description">Detailed Description</Label>
                 <Textarea 
                   id="description" 
-                  placeholder="Describe what you need help with in detail..." 
-                  className="min-h-[120px] resize-none"
+                  placeholder="e.g. My kitchen sink is leaking from the main pipe and water is pooling on the floor. I need it fixed today." 
+                  className="min-h-[150px] resize-none"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   required
@@ -146,13 +171,16 @@ export default function NewServiceRequest() {
                   </div>
                 )}
               </div>
-            </div>
+            </CardContent>
+          </Card>
 
-            <div className="space-y-6">
-              <h3 className="font-semibold text-lg flex items-center gap-2 border-b pb-2">
-                <MapPin className="h-5 w-5 text-primary" /> 2. Service Address
-              </h3>
-              
+          <Card className="border-primary/10 shadow-md">
+            <CardHeader className="bg-muted/30">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <MapPin className="h-5 w-5" /> 3. Service Location
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6 space-y-6">
               <div className="grid gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="apartment">Apartment / Building / Flat No.</Label>
@@ -187,7 +215,7 @@ export default function NewServiceRequest() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="state">State (Auto-selected)</Label>
+                    <Label htmlFor="state">State</Label>
                     <Select onValueChange={setState} value={state} required>
                       <SelectTrigger id="state">
                         <SelectValue placeholder="Select State" />
@@ -201,22 +229,22 @@ export default function NewServiceRequest() {
                   </div>
                 </div>
               </div>
-            </div>
+            </CardContent>
+          </Card>
 
-            <Button type="submit" className="w-full h-14 text-xl font-bold rounded-xl shadow-lg" disabled={loading || !serviceType || !description}>
-              {loading ? (
-                <>
-                  <Loader2 className="mr-2 h-6 w-6 animate-spin" /> Publishing...
-                </>
-              ) : (
-                <>
-                  Publish Request <Send className="ml-2 h-5 w-5" />
-                </>
-              )}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+          <Button type="submit" className="w-full h-16 text-xl font-bold rounded-2xl shadow-xl transition-transform hover:scale-[1.01] active:scale-[0.99]" disabled={loading || !serviceType || !description}>
+            {loading ? (
+              <>
+                <Loader2 className="mr-2 h-6 w-6 animate-spin" /> Publishing...
+              </>
+            ) : (
+              <>
+                Confirm & Publish Request <Send className="ml-2 h-5 w-5" />
+              </>
+            )}
+          </Button>
+        </form>
+      </div>
     </div>
   );
 }

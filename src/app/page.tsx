@@ -7,9 +7,18 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { ShieldCheck, User, Hammer, LayoutDashboard, CheckCircle2, Loader2, Home as HomeIcon } from 'lucide-react';
+import { ShieldCheck, User, Hammer, LayoutDashboard, CheckCircle2, Loader2, Home as HomeIcon, Droplets, Zap, Wind, Eraser, PenTool, Drill } from 'lucide-react';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { doc } from "firebase/firestore";
+
+const POPULAR_SERVICES = [
+  { name: 'Plumbing', icon: Droplets, color: 'text-blue-500', bg: 'bg-blue-50' },
+  { name: 'Electrical', icon: Zap, color: 'text-yellow-500', bg: 'bg-yellow-50' },
+  { name: 'Fan Repair', icon: Wind, color: 'text-cyan-500', bg: 'bg-cyan-50' },
+  { name: 'Cleaning', icon: Eraser, color: 'text-green-500', bg: 'bg-green-50' },
+  { name: 'Carpentry', icon: Drill, color: 'text-orange-500', bg: 'bg-orange-50' },
+  { name: 'Painting', icon: PenTool, color: 'text-purple-500', bg: 'bg-purple-50' },
+];
 
 export default function Home() {
   const router = useRouter();
@@ -17,7 +26,6 @@ export default function Home() {
   const db = useFirestore();
   const [showSplash, setShowSplash] = useState(true);
 
-  // Fetch role from Firestore for logged in user
   const userDocRef = useMemoFirebase(() => {
     if (!user) return null;
     return doc(db, 'users', user.uid);
@@ -25,7 +33,6 @@ export default function Home() {
 
   const { data: profile, isLoading: isProfileLoading } = useDoc(userDocRef);
 
-  // Splash Screen Timer
   useEffect(() => {
     const timer = setTimeout(() => {
       setShowSplash(false);
@@ -33,7 +40,6 @@ export default function Home() {
     return () => clearTimeout(timer);
   }, []);
 
-  // Redirect Logic
   useEffect(() => {
     if (!showSplash && !isUserLoading && !isProfileLoading && user && profile?.role) {
       if (profile.role === 'customer') router.replace("/customer/dashboard");
@@ -42,7 +48,6 @@ export default function Home() {
     }
   }, [user, profile, isUserLoading, isProfileLoading, router, showSplash]);
 
-  // 1. Splash Screen Component
   if (showSplash) {
     return (
       <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-background transition-opacity duration-500">
@@ -66,30 +71,17 @@ export default function Home() {
     );
   }
 
-  // 2. Auth Redirect Loader (Briefly shown after splash if user is logged in)
   if (isUserLoading || (user && isProfileLoading)) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-background">
+      <div className="flex flex-col items-center justify-center min-screen bg-background">
         <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
         <p className="text-muted-foreground font-medium">Securing your session...</p>
       </div>
     );
   }
 
-  // 3. Final Redirect Placeholder
-  if (user && profile?.role) {
-      return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-background">
-          <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
-          <p className="text-muted-foreground font-medium">Redirecting to workspace...</p>
-        </div>
-      );
-  }
-
-  // 4. Public Landing Page
   return (
     <div className="flex flex-col flex-1">
-      {/* Hero Section */}
       <section className="relative py-20 bg-gradient-to-br from-primary/10 via-background to-secondary/10">
         <div className="container mx-auto px-4 grid lg:grid-cols-2 gap-12 items-center">
           <div className="space-y-6">
@@ -128,7 +120,27 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Role Selection section */}
+      <section className="py-24 bg-background">
+        <div className="container mx-auto px-4">
+          <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
+            <h2 className="text-3xl font-bold">Popular Services</h2>
+            <p className="text-muted-foreground">From minor fixes to major installations, we've got you covered.</p>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+            {POPULAR_SERVICES.map((service, idx) => (
+              <Card key={idx} className="group hover:border-primary/50 transition-all cursor-pointer border-dashed">
+                <CardContent className="p-6 flex flex-col items-center text-center space-y-4">
+                  <div className={`${service.bg} p-4 rounded-2xl group-hover:scale-110 transition-transform`}>
+                    <service.icon className={`h-8 w-8 ${service.color}`} />
+                  </div>
+                  <span className="font-bold text-sm">{service.name}</span>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <section className="py-24 container mx-auto px-4">
         <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
           <h2 className="text-3xl font-bold">Choose your path</h2>
@@ -183,28 +195,27 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Feature highlight */}
       <section className="py-24 bg-muted/30">
-        <div className="container mx-auto px-4 grid md:grid-cols-3 gap-12">
+        <div className="container mx-auto px-4 grid md:grid-cols-3 gap-12 text-foreground">
           <div className="text-center space-y-4">
             <div className="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto">
               <ShieldCheck className="text-primary h-8 w-8" />
             </div>
-            <h3 className="text-xl font-bold text-foreground">Verified Experts</h3>
+            <h3 className="text-xl font-bold">Verified Experts</h3>
             <p className="text-muted-foreground">Every worker on our platform goes through a rigorous background check and skill assessment.</p>
           </div>
           <div className="text-center space-y-4">
             <div className="bg-secondary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto">
               <CheckCircle2 className="text-secondary h-8 w-8" />
             </div>
-            <h3 className="text-xl font-bold text-foreground">Quality Guaranteed</h3>
+            <h3 className="text-xl font-bold">Quality Guaranteed</h3>
             <p className="text-muted-foreground">We stand behind our work. If you're not satisfied, we'll make it right at no extra cost.</p>
           </div>
           <div className="text-center space-y-4">
             <div className="bg-accent/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto">
               <ShieldCheck className="text-accent h-8 w-8" />
             </div>
-            <h3 className="text-xl font-bold text-foreground">Transparent Pricing</h3>
+            <h3 className="text-xl font-bold">Transparent Pricing</h3>
             <p className="text-muted-foreground">No hidden fees or surprise charges. Get clear estimates before any work begins.</p>
           </div>
         </div>
