@@ -1,13 +1,13 @@
 
 "use client";
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { ShieldCheck, User, Hammer, LayoutDashboard, CheckCircle2, Loader2 } from 'lucide-react';
+import { ShieldCheck, User, Hammer, LayoutDashboard, CheckCircle2, Loader2, Home as HomeIcon } from 'lucide-react';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { doc } from "firebase/firestore";
 
@@ -15,6 +15,7 @@ export default function Home() {
   const router = useRouter();
   const { user, isUserLoading } = useUser();
   const db = useFirestore();
+  const [showSplash, setShowSplash] = useState(true);
 
   // Fetch role from Firestore for logged in user
   const userDocRef = useMemoFirebase(() => {
@@ -24,35 +25,68 @@ export default function Home() {
 
   const { data: profile, isLoading: isProfileLoading } = useDoc(userDocRef);
 
+  // Splash Screen Timer
   useEffect(() => {
-    if (!isUserLoading && !isProfileLoading && user && profile?.role) {
+    const timer = setTimeout(() => {
+      setShowSplash(false);
+    }, 2500);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Redirect Logic
+  useEffect(() => {
+    if (!showSplash && !isUserLoading && !isProfileLoading && user && profile?.role) {
       if (profile.role === 'customer') router.replace("/customer/dashboard");
       else if (profile.role === 'worker') router.replace("/worker/dashboard");
       else if (profile.role === 'admin') router.replace("/admin/dashboard");
     }
-  }, [user, profile, isUserLoading, isProfileLoading, router]);
+  }, [user, profile, isUserLoading, isProfileLoading, router, showSplash]);
 
-  // Show a clean loading state while determining redirection
-  if (isUserLoading || (user && isProfileLoading)) {
+  // 1. Splash Screen Component
+  if (showSplash) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-background">
-        <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
-        <p className="text-muted-foreground font-medium">Entering your workspace...</p>
+      <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-background transition-opacity duration-500">
+        <div className="relative flex flex-col items-center space-y-6 animate-in fade-in zoom-in duration-700">
+          <div className="bg-primary p-6 rounded-3xl shadow-2xl shadow-primary/20 animate-bounce">
+            <HomeIcon className="text-primary-foreground h-16 w-16" />
+          </div>
+          <div className="text-center space-y-2">
+            <h1 className="text-5xl font-black tracking-tighter text-primary">
+              Apna<span className="text-secondary">Helper</span>
+            </h1>
+            <p className="text-muted-foreground font-medium tracking-widest uppercase text-xs">
+              Trusted Home Services
+            </p>
+          </div>
+          <div className="pt-8">
+            <Loader2 className="h-6 w-6 animate-spin text-primary/40" />
+          </div>
+        </div>
       </div>
     );
   }
 
-  // If user is logged in but the redirect hasn't happened yet (very brief), 
-  // or if user is not logged in, show the public landing page.
+  // 2. Auth Redirect Loader (Briefly shown after splash if user is logged in)
+  if (isUserLoading || (user && isProfileLoading)) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-background">
+        <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
+        <p className="text-muted-foreground font-medium">Securing your session...</p>
+      </div>
+    );
+  }
+
+  // 3. Final Redirect Placeholder
   if (user && profile?.role) {
       return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-background">
           <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
-          <p className="text-muted-foreground font-medium">Redirecting...</p>
+          <p className="text-muted-foreground font-medium">Redirecting to workspace...</p>
         </div>
       );
   }
 
+  // 4. Public Landing Page
   return (
     <div className="flex flex-col flex-1">
       {/* Hero Section */}
