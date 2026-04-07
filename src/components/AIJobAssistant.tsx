@@ -1,13 +1,12 @@
-
 "use client";
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
-import { Sparkles, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
+import { Sparkles, Loader2, AlertCircle } from "lucide-react";
 import { customerJobDescriptionAssistant, CustomerJobDescriptionAssistantOutput } from "@/ai/flows/customer-job-description-assistant-flow";
 import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
 
 interface AIJobAssistantProps {
   serviceType: string;
@@ -16,11 +15,20 @@ interface AIJobAssistantProps {
 }
 
 export default function AIJobAssistant({ serviceType, initialDescription, onRefined }: AIJobAssistantProps) {
+  const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<CustomerJobDescriptionAssistantOutput | null>(null);
 
   const handleRefine = async () => {
-    if (!initialDescription) return;
+    if (!initialDescription) {
+      toast({
+        variant: "destructive",
+        title: "Input Required",
+        description: "Please type a brief description first so the AI can help you refine it.",
+      });
+      return;
+    }
+
     setLoading(true);
     try {
       const response = await customerJobDescriptionAssistant({
@@ -28,8 +36,17 @@ export default function AIJobAssistant({ serviceType, initialDescription, onRefi
         currentDescription: initialDescription,
       });
       setResult(response);
-    } catch (error) {
-      console.error("AI Error:", error);
+      toast({
+        title: "AI Analysis Complete",
+        description: "Review the refined description and suggestions below.",
+      });
+    } catch (error: any) {
+      console.error("AI Assistant Error:", error);
+      toast({
+        variant: "destructive",
+        title: "AI Assistant Unavailable",
+        description: error.message || "Something went wrong while trying to refine your description.",
+      });
     } finally {
       setLoading(false);
     }
@@ -39,6 +56,10 @@ export default function AIJobAssistant({ serviceType, initialDescription, onRefi
     if (result) {
       onRefined(result.refinedDescription);
       setResult(null);
+      toast({
+        title: "Applied",
+        description: "The refined description has been added to your request.",
+      });
     }
   };
 
@@ -50,7 +71,7 @@ export default function AIJobAssistant({ serviceType, initialDescription, onRefi
           variant="outline" 
           className="w-full border-dashed border-primary/40 text-primary hover:bg-primary/5 h-12"
           onClick={handleRefine}
-          disabled={loading || !initialDescription}
+          disabled={loading}
         >
           {loading ? (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -62,7 +83,7 @@ export default function AIJobAssistant({ serviceType, initialDescription, onRefi
       )}
 
       {result && (
-        <Card className="border-primary/20 bg-primary/5">
+        <Card className="border-primary/20 bg-primary/5 animate-in fade-in slide-in-from-top-2">
           <CardHeader className="pb-2 flex flex-row items-center justify-between">
             <CardTitle className="text-sm font-semibold flex items-center gap-2">
               <Sparkles className="h-4 w-4 text-primary" />
@@ -73,7 +94,7 @@ export default function AIJobAssistant({ serviceType, initialDescription, onRefi
             </Badge>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="p-3 bg-white rounded-md border text-sm italic text-muted-foreground">
+            <div className="p-3 bg-card rounded-md border text-sm italic text-muted-foreground">
               {result.refinedDescription}
             </div>
             
@@ -91,9 +112,12 @@ export default function AIJobAssistant({ serviceType, initialDescription, onRefi
               </div>
             )}
           </CardContent>
-          <CardFooter>
-            <Button onClick={applyRefined} className="w-full">
+          <CardFooter className="flex gap-2">
+            <Button onClick={applyRefined} className="flex-1">
               Apply Refined Description
+            </Button>
+            <Button variant="ghost" onClick={() => setResult(null)} className="text-muted-foreground">
+              Dismiss
             </Button>
           </CardFooter>
         </Card>
