@@ -45,13 +45,6 @@ export type CustomerJobDescriptionAssistantOutput = z.infer<
   typeof CustomerJobDescriptionAssistantOutputSchema
 >;
 
-// Wrapper function to call the flow
-export async function customerJobDescriptionAssistant(
-  input: CustomerJobDescriptionAssistantInput
-): Promise<CustomerJobDescriptionAssistantOutput> {
-  return customerJobDescriptionAssistantFlow(input);
-}
-
 // Define the prompt
 const customerJobDescriptionAssistantPrompt = ai.definePrompt({
   name: 'customerJobDescriptionAssistantPrompt',
@@ -87,3 +80,10 @@ const customerJobDescriptionAssistantFlow = ai.defineFlow(
     }
   }
 );
+
+// Wrapper function to call the flow
+export async function customerJobDescriptionAssistant(
+  input: CustomerJobDescriptionAssistantInput
+): Promise<CustomerJobDescriptionAssistantOutput> {
+  return customerJobDescriptionAssistantFlow(input);
+}
