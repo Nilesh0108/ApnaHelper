@@ -62,5 +62,18 @@ ApnaHelper is built to modernize the local service industry. It replaces fragmen
 - **AI Platform:** Google Genkit + Gemini AI
 - **UI Components:** Shadcn UI + Lucide Icons
 - **Charts:** Recharts
+
+## 📦 Local Installation
+1.  **Clone the Repo**: `git clone <your-repo-url>`
+2.  **Install Dependencies**: `npm install`
+3.  **Setup Environment**: Create a `.env` file and add your `GOOGLE_GENAI_API_KEY`.
+4.  **Run Development Server**: `npm run dev`
+
+## ⬆️ How to Update GitHub
+To push your latest changes to GitHub, run these commands in your terminal:
+1. `git add .`
+2. `git commit -m "Update: Added latest features and configurations"`
+3. `git push origin main`
+
 --
 © 2026 **TechVeda**. Developed by **Nilesh Pal**.
