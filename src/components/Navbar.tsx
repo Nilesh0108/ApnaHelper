@@ -16,7 +16,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Avatar, Avatar開AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ModeToggle } from "@/components/mode-toggle";
 import Logo from "@/components/Logo";
 
@@ -165,10 +165,10 @@ export default function Navbar() {
           ) : (
             <div className="flex gap-2">
               <Link href="/login">
-                <Button variant="ghost" size="sm" className="transition-all hover:scale-105 active:scale-95">Login</Button>
+                <Button variant="default" size="sm" className="transition-all hover:scale-105 active:scale-95 shadow-md">Login</Button>
               </Link>
               <Link href="/register">
-                <Button size="sm" className="transition-all hover:scale-105 active:scale-95 shadow-sm hover:shadow-primary/25">Register</Button>
+                <Button variant="outline" size="sm" className="transition-all hover:scale-105 active:scale-95 border-primary text-primary hover:bg-primary/5">Register</Button>
               </Link>
             </div>
           )}

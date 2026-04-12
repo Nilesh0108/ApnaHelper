@@ -105,16 +105,11 @@ export default function Home() {
             </p>
             <div className="flex flex-wrap gap-4 pt-4">
               <Link href="/login">
-                <Button size="lg" className="rounded-full px-8 text-lg transition-all hover:scale-105 active:scale-95 shadow-lg hover:shadow-primary/25">Get Started</Button>
+                <Button size="lg" className="rounded-full px-8 text-lg transition-all hover:scale-105 active:scale-95 shadow-lg hover:shadow-primary/25">Login Now</Button>
               </Link>
-              <Button 
-                variant="outline" 
-                size="lg" 
-                className="rounded-full px-8 text-lg transition-all hover:scale-105 active:scale-95 hover:bg-muted"
-                onClick={scrollToServices}
-              >
-                Browse Services
-              </Button>
+              <Link href="/register">
+                <Button variant="outline" size="lg" className="rounded-full px-8 text-lg transition-all hover:scale-105 active:scale-95 border-primary text-primary hover:bg-primary/5">Register</Button>
+              </Link>
             </div>
             <div className="flex items-center gap-6 pt-4 text-sm font-medium text-muted-foreground">
               <div className="flex items-center gap-2 hover:text-foreground transition-colors cursor-default">
@@ -181,7 +176,7 @@ export default function Home() {
             </CardHeader>
             <CardContent>
               <Link href="/login?role=customer">
-                <Button className="w-full transition-all active:scale-95">Customer Portal</Button>
+                <Button className="w-full transition-all active:scale-95 shadow-md">Customer Portal</Button>
               </Link>
             </CardContent>
           </Card>
@@ -196,7 +191,7 @@ export default function Home() {
             </CardHeader>
             <CardContent>
               <Link href="/login?role=worker">
-                <Button variant="secondary" className="w-full transition-all active:scale-95">Worker Portal</Button>
+                <Button variant="secondary" className="w-full transition-all active:scale-95 shadow-md">Worker Portal</Button>
               </Link>
             </CardContent>
           </Card>
