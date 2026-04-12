@@ -16,8 +16,8 @@ export const metadata: Metadata = {
     telephone: false,
   },
   icons: {
-    icon: 'https://picsum.photos/seed/apnahelper/192/192',
-    apple: 'https://picsum.photos/seed/apnahelper/192/192',
+    icon: 'https://picsum.photos/seed/apnahelper-logo/192/192',
+    apple: 'https://picsum.photos/seed/apnahelper-logo/192/192',
   },
 };
 
