@@ -16,7 +16,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, Avatar開AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ModeToggle } from "@/components/mode-toggle";
 import Logo from "@/components/Logo";
 
@@ -62,12 +62,12 @@ export default function Navbar() {
       return (
         <div className="flex items-center gap-1">
           <Link href="/customer/dashboard">
-            <Button variant={pathname === '/customer/dashboard' ? 'secondary' : 'ghost'} size="sm">
+            <Button variant={pathname === '/customer/dashboard' ? 'secondary' : 'ghost'} size="sm" className="transition-all active:scale-95">
               Dashboard
             </Button>
           </Link>
           <Link href="/customer/history">
-            <Button variant={pathname === '/customer/history' ? 'secondary' : 'ghost'} size="sm">
+            <Button variant={pathname === '/customer/history' ? 'secondary' : 'ghost'} size="sm" className="transition-all active:scale-95">
               <HistoryIcon className="h-4 w-4 mr-1 hidden md:block" /> History
             </Button>
           </Link>
@@ -79,12 +79,12 @@ export default function Navbar() {
       return (
         <div className="flex items-center gap-1">
           <Link href="/worker/dashboard">
-            <Button variant={pathname === '/worker/dashboard' ? 'secondary' : 'ghost'} size="sm">
+            <Button variant={pathname === '/worker/dashboard' ? 'secondary' : 'ghost'} size="sm" className="transition-all active:scale-95">
               Jobs
             </Button>
           </Link>
           <Link href="/worker/earnings">
-            <Button variant={pathname === '/worker/earnings' ? 'secondary' : 'ghost'} size="sm">
+            <Button variant={pathname === '/worker/earnings' ? 'secondary' : 'ghost'} size="sm" className="transition-all active:scale-95">
               <Wallet className="h-4 w-4 mr-1 hidden md:block" /> Earnings
             </Button>
           </Link>
@@ -96,12 +96,12 @@ export default function Navbar() {
       return (
         <div className="flex items-center gap-1">
           <Link href="/admin/dashboard">
-            <Button variant={pathname === '/admin/dashboard' ? 'secondary' : 'ghost'} size="sm">
+            <Button variant={pathname === '/admin/dashboard' ? 'secondary' : 'ghost'} size="sm" className="transition-all active:scale-95">
               Users
             </Button>
           </Link>
           <Link href="/admin/reports">
-            <Button variant={pathname === '/admin/reports' ? 'secondary' : 'ghost'} size="sm">
+            <Button variant={pathname === '/admin/reports' ? 'secondary' : 'ghost'} size="sm" className="transition-all active:scale-95">
               <PieChart className="h-4 w-4 mr-1 hidden md:block" /> Reports
             </Button>
           </Link>
@@ -115,8 +115,8 @@ export default function Navbar() {
   return (
     <nav className="bg-background border-b sticky top-0 z-50">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2">
-          <Logo size="sm" className="bg-primary/10 p-1.5 rounded-lg" />
+        <Link href="/" className="flex items-center gap-2 group transition-all active:scale-95">
+          <Logo size="sm" className="bg-primary/10 p-1.5 rounded-lg group-hover:scale-110 transition-transform" />
           <span className="font-bold text-xl text-primary hidden sm:block">
             Apna<span className="text-secondary">Helper</span>
           </span>
@@ -133,8 +133,8 @@ export default function Navbar() {
               
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-                    <Avatar className="h-10 w-10">
+                  <Button variant="ghost" className="relative h-10 w-10 rounded-full transition-all hover:scale-105 active:scale-95">
+                    <Avatar className="h-10 w-10 border-2 border-transparent hover:border-primary/20 transition-all">
                       <AvatarImage src={`https://picsum.photos/seed/${user.uid}/100`} />
                       <AvatarFallback>{user.email?.charAt(0).toUpperCase()}</AvatarFallback>
                     </Avatar>
@@ -165,10 +165,10 @@ export default function Navbar() {
           ) : (
             <div className="flex gap-2">
               <Link href="/login">
-                <Button variant="ghost" size="sm">Login</Button>
+                <Button variant="ghost" size="sm" className="transition-all hover:scale-105 active:scale-95">Login</Button>
               </Link>
               <Link href="/register">
-                <Button size="sm">Register</Button>
+                <Button size="sm" className="transition-all hover:scale-105 active:scale-95 shadow-sm hover:shadow-primary/25">Register</Button>
               </Link>
             </div>
           )}
