@@ -7,10 +7,11 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { ShieldCheck, User, Hammer, LayoutDashboard, CheckCircle2, Loader2, Home as HomeIcon, Droplets, Zap, Wind, Eraser, PenTool, Drill } from 'lucide-react';
+import { ShieldCheck, User, Hammer, LayoutDashboard, CheckCircle2, Loader2, Droplets, Zap, Wind, Eraser, PenTool, Drill } from 'lucide-react';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { doc } from "firebase/firestore";
 import placeholderData from '@/app/lib/placeholder-images.json';
+import Logo from '@/components/Logo';
 
 const POPULAR_SERVICES = [
   { name: 'Plumbing', icon: Droplets, color: 'text-blue-500', bg: 'bg-blue-50' },
@@ -62,8 +63,8 @@ export default function Home() {
     return (
       <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-background transition-opacity duration-500">
         <div className="relative flex flex-col items-center space-y-6 animate-in fade-in zoom-in duration-700">
-          <div className="bg-primary p-6 rounded-3xl shadow-2xl shadow-primary/20 animate-bounce">
-            <HomeIcon className="text-primary-foreground h-16 w-16" />
+          <div className="bg-primary/10 p-8 rounded-[2.5rem] shadow-2xl shadow-primary/10 animate-bounce">
+            <Logo size="xl" />
           </div>
           <div className="text-center space-y-2">
             <h1 className="text-5xl font-black tracking-tighter text-primary">

@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -6,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth, useUser, useDoc, useMemoFirebase, useFirestore } from "@/firebase";
 import { signOut } from "firebase/auth";
 import { doc } from "firebase/firestore";
-import { LogOut, Home, History, PieChart, Wallet, User, History as HistoryIcon } from "lucide-react";
+import { LogOut, History, PieChart, Wallet, User, History as HistoryIcon } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,6 +18,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ModeToggle } from "@/components/mode-toggle";
+import Logo from "@/components/Logo";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -25,7 +27,6 @@ export default function Navbar() {
   const db = useFirestore();
   const { user, isUserLoading } = useUser();
 
-  // Fetch role from Firestore using memoized reference
   const userDocRef = useMemoFirebase(() => {
     if (!user) return null;
     return doc(db, 'users', user.uid);
@@ -115,9 +116,7 @@ export default function Navbar() {
     <nav className="bg-background border-b sticky top-0 z-50">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2">
-          <div className="bg-primary p-2 rounded-lg">
-            <Home className="text-primary-foreground h-5 w-5" />
-          </div>
+          <Logo size="sm" className="bg-primary/10 p-1.5 rounded-lg" />
           <span className="font-bold text-xl text-primary hidden sm:block">
             Apna<span className="text-secondary">Helper</span>
           </span>
