@@ -1,4 +1,3 @@
-
 import { MetadataRoute } from 'next'
 
 export default function manifest(): MetadataRoute.Manifest {
@@ -12,13 +11,13 @@ export default function manifest(): MetadataRoute.Manifest {
     theme_color: '#3b82f6',
     icons: [
       {
-        src: 'https://picsum.photos/seed/apnahelper-app-logo/192/192',
+        src: 'https://cdn-icons-png.flaticon.com/512/619/619153.png',
         sizes: '192x192',
         type: 'image/png',
         purpose: 'maskable',
       },
       {
-        src: 'https://picsum.photos/seed/apnahelper-app-logo/512/512',
+        src: 'https://cdn-icons-png.flaticon.com/512/619/619153.png',
         sizes: '512x512',
         type: 'image/png',
         purpose: 'any',
