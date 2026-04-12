@@ -11,14 +11,16 @@ export default function manifest(): MetadataRoute.Manifest {
     theme_color: '#3b82f6',
     icons: [
       {
-        src: 'https://picsum.photos/seed/icon/192/192',
+        src: 'https://picsum.photos/seed/apnahelper/192/192',
         sizes: '192x192',
         type: 'image/png',
+        purpose: 'maskable',
       },
       {
-        src: 'https://picsum.photos/seed/icon/512/512',
+        src: 'https://picsum.photos/seed/apnahelper/512/512',
         sizes: '512x512',
         type: 'image/png',
+        purpose: 'any',
       },
     ],
   }

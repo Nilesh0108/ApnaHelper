@@ -6,6 +6,7 @@ import { ThemeProvider } from '@/components/theme-provider';
 export const metadata: Metadata = {
   title: 'ApnaHelper | Trusted Home Services',
   description: 'Connect with expert service providers for all your home needs.',
+  manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
@@ -13,6 +14,10 @@ export const metadata: Metadata = {
   },
   formatDetection: {
     telephone: false,
+  },
+  icons: {
+    icon: 'https://picsum.photos/seed/apnahelper/192/192',
+    apple: 'https://picsum.photos/seed/apnahelper/192/192',
   },
 };
 
