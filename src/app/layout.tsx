@@ -1,3 +1,4 @@
+
 import type {Metadata, Viewport} from 'next';
 import './globals.css';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
@@ -16,8 +17,8 @@ export const metadata: Metadata = {
     telephone: false,
   },
   icons: {
-    icon: 'https://picsum.photos/seed/apnahelper-logo/192/192',
-    apple: 'https://picsum.photos/seed/apnahelper-logo/192/192',
+    icon: 'https://picsum.photos/seed/apnahelper-app-logo/192/192',
+    apple: 'https://picsum.photos/seed/apnahelper-app-logo/192/192',
   },
 };
 
